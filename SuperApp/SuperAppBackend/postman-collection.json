@@ -1,0 +1,1008 @@
+{
+  "info": {
+    "_postman_id": "c5f3d8ef-a0c5-4f68-a9cc-ff8a1bde8a5d",
+    "name": "User Registration & ID System",
+    "description": "API collection for testing the User Registration and ID System",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Registration Service",
+      "item": [
+        {
+          "name": "Start Registration",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"phone\": \"+919876543210\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/register/start",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "register",
+                "start"
+              ]
+            },
+            "description": "Start the registration process by providing email and phone"
+          },
+          "response": [
+            {
+              "name": "Start Registration Success",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"user@example.com\",\n  \"phone\": \"+919876543210\"\n}"
+                },
+                "url": {
+                  "raw": "http://localhost:8080/api/register/start",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "8080",
+                  "path": [
+                    "api",
+                    "register",
+                    "start"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"message\": \"OTP sent to your email and phone\",\n  \"data\": null\n}"
+            }
+          ]
+        },
+        {
+          "name": "Verify OTP",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"phone\": \"+919876543210\",\n  \"emailOtp\": \"123456\",\n  \"phoneOtp\": \"654321\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/register/verify-otp",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "register",
+                "verify-otp"
+              ]
+            },
+            "description": "Verify both the email and phone OTPs"
+          },
+          "response": [
+            {
+              "name": "Verify OTP Success",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"user@example.com\",\n  \"phone\": \"+919876543210\",\n  \"emailOtp\": \"123456\",\n  \"phoneOtp\": \"654321\"\n}"
+                },
+                "url": {
+                  "raw": "http://localhost:8080/api/register/verify-otp",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "8080",
+                  "path": [
+                    "api",
+                    "register",
+                    "verify-otp"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"message\": \"OTP verified successfully\",\n  \"data\": null\n}"
+            }
+          ]
+        },
+        {
+          "name": "Validate Username (Auto-generate)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"phone\": \"+919876543210\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/register/validate-username",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "register",
+                "validate-username"
+              ]
+            },
+            "description": "Get a system-generated username"
+          },
+          "response": [
+            {
+              "name": "Auto-generated Username Success",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"user@example.com\",\n  \"phone\": \"+919876543210\"\n}"
+                },
+                "url": {
+                  "raw": "http://localhost:8080/api/register/validate-username",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "8080",
+                  "path": [
+                    "api",
+                    "register",
+                    "validate-username"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Username validation successful\",\n  \"data\": {\n    \"username\": \"QAA606\",\n    \"available\": true,\n    \"isFancy\": false,\n    \"fancyType\": \"\",\n    \"basePrice\": 100.0,\n    \"fancyPrice\": 0.0,\n    \"totalPrice\": 100.0\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Validate Username (Custom - Fancy)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"phone\": \"+919876543210\",\n  \"username\": \"AAA111\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/register/validate-username",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "register",
+                "validate-username"
+              ]
+            },
+            "description": "Check a custom username with fancy pattern"
+          },
+          "response": [
+            {
+              "name": "Fancy Username Success",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"user@example.com\",\n  \"phone\": \"+919876543210\",\n  \"username\": \"AAA111\"\n}"
+                },
+                "url": {
+                  "raw": "http://localhost:8080/api/register/validate-username",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "8080",
+                  "path": [
+                    "api",
+                    "register",
+                    "validate-username"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Username validation successful\",\n  \"data\": {\n    \"username\": \"AAA111\",\n    \"available\": true,\n    \"isFancy\": true,\n    \"fancyType\": \"Repeated Characters\",\n    \"basePrice\": 100.0,\n    \"fancyPrice\": 50.0,\n    \"totalPrice\": 150.0\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Initiate Payment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"phone\": \"+919876543210\",\n  \"username\": \"AAA111\",\n  \"isFancy\": true,\n  \"fancyType\": \"Repeated Characters\",\n  \"basePrice\": 100.0,\n  \"fancyPrice\": 50.0,\n  \"totalPrice\": 150.0\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/register/initiate-payment",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "register",
+                "initiate-payment"
+              ]
+            },
+            "description": "Initiate payment for a username"
+          },
+          "response": [
+            {
+              "name": "Initiate Payment Success",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"user@example.com\",\n  \"phone\": \"+919876543210\",\n  \"username\": \"AAA111\",\n  \"isFancy\": true,\n  \"fancyType\": \"Repeated Characters\",\n  \"basePrice\": 100.0,\n  \"fancyPrice\": 50.0,\n  \"totalPrice\": 150.0\n}"
+                },
+                "url": {
+                  "raw": "http://localhost:8080/api/register/initiate-payment",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "8080",
+                  "path": [
+                    "api",
+                    "register",
+                    "initiate-payment"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Payment initiated\",\n  \"data\": \"https://checkout.razorpay.com/v1/checkout.js?key=rzp_test_123456&amount=15000&currency=INR&order_id=order_123456789&name=ID Registration&description=Username: AAA111&prefill[email]=user@example.com&prefill[contact]=+919876543210\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Complete Registration",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/register/complete?email=user@example.com&phone=+919876543210&username=AAA111",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "register",
+                "complete"
+              ],
+              "query": [
+                {
+                  "key": "email",
+                  "value": "user@example.com"
+                },
+                {
+                  "key": "phone",
+                  "value": "+919876543210"
+                },
+                {
+                  "key": "username",
+                  "value": "AAA111"
+                }
+              ]
+            },
+            "description": "Complete the registration after payment"
+          },
+          "response": [
+            {
+              "name": "Complete Registration Success",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "http://localhost:8080/api/register/complete?email=user@example.com&phone=+919876543210&username=AAA111",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "8080",
+                  "path": [
+                    "api",
+                    "register",
+                    "complete"
+                  ],
+                  "query": [
+                    {
+                      "key": "email",
+                      "value": "user@example.com"
+                    },
+                    {
+                      "key": "phone",
+                      "value": "+919876543210"
+                    },
+                    {
+                      "key": "username",
+                      "value": "AAA111"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Registration completed successfully\",\n  \"data\": null\n}"
+            }
+          ]
+        },
+        {
+          "name": "Login (Send OTP)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"AAA111\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/login/send-otp",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "login",
+                "send-otp"
+              ]
+            },
+            "description": "Request login OTP"
+          },
+          "response": [
+            {
+              "name": "Login OTP Success",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"AAA111\"\n}"
+                },
+                "url": {
+                  "raw": "http://localhost:8080/api/login/send-otp",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "8080",
+                  "path": [
+                    "api",
+                    "login",
+                    "send-otp"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"message\": \"OTP sent to your WhatsApp\",\n  \"data\": null\n}"
+            }
+          ]
+        },
+        {
+          "name": "Verify Login OTP",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"AAA111\",\n  \"otp\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/login/verify",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "login",
+                "verify"
+              ]
+            },
+            "description": "Verify login OTP"
+          },
+          "response": [
+            {
+              "name": "Verify Login OTP Success",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"AAA111\",\n  \"otp\": \"123456\"\n}"
+                },
+                "url": {
+                  "raw": "http://localhost:8080/api/login/verify",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "8080",
+                  "path": [
+                    "api",
+                    "login",
+                    "verify"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Login successful\",\n  \"data\": \"user_1_1623847290123\"\n}"
+            }
+          ]
+        }
+      ],
+      "description": "Endpoints for the registration and login service"
+    },
+    {
+      "name": "ID Generation Service",
+      "item": [
+        {
+          "name": "Generate Username",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8081/api/id-generation/generate",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8081",
+              "path": [
+                "api",
+                "id-generation",
+                "generate"
+              ]
+            },
+            "description": "Generate a random username"
+          },
+          "response": [
+            {
+              "name": "Generate Username Success",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "http://localhost:8081/api/id-generation/generate",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "8081",
+                  "path": [
+                    "api",
+                    "id-generation",
+                    "generate"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Username generated successfully\",\n  \"data\": \"QAA606\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Generate Username with Prefix",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8081/api/id-generation/generate?prefix=ABC",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8081",
+              "path": [
+                "api",
+                "id-generation",
+                "generate"
+              ],
+              "query": [
+                {
+                  "key": "prefix",
+                  "value": "ABC"
+                }
+              ]
+            },
+            "description": "Generate a random username with a specific prefix"
+          },
+          "response": [
+            {
+              "name": "Generate Username with Prefix Success",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "http://localhost:8081/api/id-generation/generate?prefix=ABC",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "8081",
+                  "path": [
+                    "api",
+                    "id-generation",
+                    "generate"
+                  ],
+                  "query": [
+                    {
+                      "key": "prefix",
+                      "value": "ABC"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Username generated successfully\",\n  \"data\": \"ABC123\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Check Username",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"AAA111\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8081/api/id-generation/check",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8081",
+              "path": [
+                "api",
+                "id-generation",
+                "check"
+              ]
+            },
+            "description": "Check if a username is fancy and available"
+          },
+          "response": [
+            {
+              "name": "Check Username Success (Fancy)",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"AAA111\"\n}"
+                },
+                "url": {
+                  "raw": "http://localhost:8081/api/id-generation/check",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "8081",
+                  "path": [
+                    "api",
+                    "id-generation",
+                    "check"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Username checked successfully\",\n  \"data\": {\n    \"username\": \"AAA111\",\n    \"available\": true,\n    \"isFancy\": true,\n    \"fancyType\": \"Repeated Characters\",\n    \"fancyPrice\": 50.0\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Initiate Payment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"phone\": \"+919876543210\",\n  \"username\": \"AAA111\",\n  \"isFancy\": true,\n  \"fancyType\": \"Repeated Characters\",\n  \"basePrice\": 100.0,\n  \"fancyPrice\": 50.0,\n  \"totalPrice\": 150.0\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8081/api/id-generation/payment/initiate",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8081",
+              "path": [
+                "api",
+                "id-generation",
+                "payment",
+                "initiate"
+              ]
+            },
+            "description": "Initiate payment for a username"
+          },
+          "response": [
+            {
+              "name": "Initiate Payment Success",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"user@example.com\",\n  \"phone\": \"+919876543210\",\n  \"username\": \"AAA111\",\n  \"isFancy\": true,\n  \"fancyType\": \"Repeated Characters\",\n  \"basePrice\": 100.0,\n  \"fancyPrice\": 50.0,\n  \"totalPrice\": 150.0\n}"
+                },
+                "url": {
+                  "raw": "http://localhost:8081/api/id-generation/payment/initiate",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "8081",
+                  "path": [
+                    "api",
+                    "id-generation",
+                    "payment",
+                    "initiate"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Payment initiated\",\n  \"data\": \"https://checkout.razorpay.com/v1/checkout.js?key=rzp_test_123456&amount=15000&currency=INR&order_id=order_123456789&name=ID Registration&description=Username: AAA111&prefill[email]=user@example.com&prefill[contact]=+919876543210\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Verify Payment",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8081/api/id-generation/payment/verify?paymentId=pay_123456789&signature=abcdef123456",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8081",
+              "path": [
+                "api",
+                "id-generation",
+                "payment",
+                "verify"
+              ],
+              "query": [
+                {
+                  "key": "paymentId",
+                  "value": "pay_123456789"
+                },
+                {
+                  "key": "signature",
+                  "value": "abcdef123456"
+                }
+              ]
+            },
+            "description": "Verify payment after Razorpay callback"
+          },
+          "response": [
+            {
+              "name": "Verify Payment Success",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "http://localhost:8081/api/id-generation/payment/verify?paymentId=pay_123456789&signature=abcdef123456",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "8081",
+                  "path": [
+                    "api",
+                    "id-generation",
+                    "payment",
+                    "verify"
+                  ],
+                  "query": [
+                    {
+                      "key": "paymentId",
+                      "value": "pay_123456789"
+                    },
+                    {
+                      "key": "signature",
+                      "value": "abcdef123456"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Payment verified successfully\",\n  \"data\": {\n    \"orderId\": \"1\",\n    \"razorpayOrderId\": \"order_123456789\",\n    \"amount\": 150.0,\n    \"currency\": \"INR\",\n    \"receipt\": \"receipt_1\",\n    \"paymentId\": \"pay_123456789\",\n    \"status\": \"COMPLETED\",\n    \"username\": \"AAA111\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Payment Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8081/api/id-generation/payment/status/pay_123456789",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8081",
+              "path": [
+                "api",
+                "id-generation",
+                "payment",
+                "status",
+                "pay_123456789"
+              ]
+            },
+            "description": "Check the status of a payment"
+          },
+          "response": [
+            {
+              "name": "Get Payment Status Success",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "http://localhost:8081/api/id-generation/payment/status/pay_123456789",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "8081",
+                  "path": [
+                    "api",
+                    "id-generation",
+                    "payment",
+                    "status",
+                    "pay_123456789"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Payment status retrieved\",\n  \"data\": {\n    \"paymentId\": \"pay_123456789\",\n    \"status\": \"COMPLETED\",\n    \"username\": \"AAA111\",\n    \"amount\": 150.0,\n    \"email\": \"user@example.com\",\n    \"phone\": \"+919876543210\"\n  }\n}"
+            }
+          ]
+        }
+      ],
+      "description": "Endpoints for the ID generation and payment service"
+    }
+  ]
+}
