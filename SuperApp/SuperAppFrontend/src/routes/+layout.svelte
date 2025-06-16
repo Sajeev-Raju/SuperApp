@@ -4,11 +4,9 @@
   import { onMount } from 'svelte';
   import { Circle } from 'svelte-loading-spinners';
 
-  let loading = true;
-
-  onMount(() => {
+  onMount(async () => {
     // Initialize session
-    initializeSession();
+    await initializeSession();
     
     // Check for dark mode preference
     if (typeof window !== 'undefined') {
@@ -17,11 +15,10 @@
         toggleDarkMode();
       }
     }
-    loading = false;
   });
 </script>
 
-{#if loading}
+{#if $session.isLoading}
   <div class="fixed inset-0 flex items-center justify-center">
     <Circle size="60" color="#0ea5e9" unit="px" duration="1s" />
   </div>

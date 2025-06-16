@@ -142,23 +142,14 @@ export const api = {
     return await apiInstance.post<ApiResponse>('/login/continue-with-oldest-logout', data);
   },
   
-  logout: async (params: { username: string; sessionId: string }) => {
-    return await apiInstance.post<ApiResponse>(
-      '/login/logout',
-      {}, // no body needed
-      {
-        headers: {
-          'username': params.username,
-          'session-id': params.sessionId
-        }
-      }
-    );
+  logout: async () => {
+    return await apiInstance.post<ApiResponse>('/login/logout');
   },
   
 
   // Session endpoints
-  validateSession: async (data: SessionValidationData) => {
-    return await apiInstance.post<ApiResponse>('/session/validate', data);
+  validateSession: async () => {
+    return await apiInstance.post<ApiResponse>('/session/validate');
   },
 
   // ID Generation endpoints

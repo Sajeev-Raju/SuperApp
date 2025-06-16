@@ -1,5 +1,4 @@
 import { writable } from 'svelte/store';
-import Cookies from 'js-cookie';
 import { goto } from '$app/navigation';
 import { api } from '$lib/api';
 
@@ -7,50 +6,43 @@ interface SessionState {
   username: string | null;
   sessionId: string | null;
   darkMode: boolean;
+  isLoading: boolean;
 }
 
 const initialState: SessionState = {
   username: null,
   sessionId: null,
-  darkMode: false
+  darkMode: false,
+  isLoading: true
 };
 
 export const session = writable<SessionState>(initialState);
 
-export function initializeSession() {
-  const sessionId = Cookies.get('sessionId');
-  const username = Cookies.get('username');
-
-  if (sessionId && username) {
-    validateSession(username, sessionId);
-  }
-}
-
-async function validateSession(username: string, sessionId: string) {
+export async function initializeSession() {
   try {
-    const response = await api.validateSession({ username, sessionId });
+    // The backend will automatically send cookies with the request
+    const response = await api.validateSession();
     if (response.data.valid) {
-      session.update(s => ({ ...s, username, sessionId }));
+      session.update(s => ({ 
+        ...s, 
+        username: response.data.username,
+        sessionId: response.data.sessionId,
+        isLoading: false 
+      }));
     } else {
       clearSession();
-      goto('/login');
     }
   } catch (error) {
     clearSession();
-    goto('/login');
   }
 }
 
 export function setSession(username: string, sessionId: string) {
-  Cookies.set('username', username);
-  Cookies.set('sessionId', sessionId);
   session.update(s => ({ ...s, username, sessionId }));
 }
 
 export function clearSession() {
-  Cookies.remove('username');
-  Cookies.remove('sessionId');
-  session.update(s => ({ ...s, username: null, sessionId: null }));
+  session.update(s => ({ ...s, username: null, sessionId: null, isLoading: false }));
 }
 
 export function toggleDarkMode() {

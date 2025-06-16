@@ -29,9 +29,11 @@
       });
 
       if (response.data.success) {
+        // The backend will set the HTTP-only cookies
+        // We just need to update our local state
         setSession(
           sessionStorage.getItem('loginUsername') || '',
-          response.data.data
+          response.data.data.sessionId
         );
         sessionStorage.removeItem('loginUsername');
         goto('/');

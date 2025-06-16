@@ -10,13 +10,9 @@
 
   onMount(async () => {
     try {
-      if ($session.username && $session.sessionId) {
-        await api.logout({
-          username: $session.username,
-          sessionId: $session.sessionId
-        });
-        clearSession();
-      }
+      // The backend will clear the HTTP-only cookies
+      await api.logout();
+      clearSession();
       goto('/');
     } catch (err: any) {
       error = err.response?.data?.message || err.message;

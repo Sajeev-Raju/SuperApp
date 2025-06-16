@@ -1,0 +1,14 @@
+{
+	"/": [],
+	"/login": [],
+	"/login/verify": [],
+	"/logout": [],
+	"/register": [],
+	"/register/auto-id": [],
+	"/register/choose-id": [],
+	"/register/custom-id": [],
+	"/register/otp": [],
+	"/register/payment": [],
+	"/register/success": [],
+	"/register/suggested-id": []
+}

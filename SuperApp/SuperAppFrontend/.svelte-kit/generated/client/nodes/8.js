@@ -1,0 +1,1 @@
+export { default as component } from "../../../../src/routes/register/choose-id/+page.svelte";
