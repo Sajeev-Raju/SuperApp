@@ -15,6 +15,9 @@
   let availableCategories: string[] = [];
   let sortBy: "newest" | "oldest" | "price-low" | "price-high" = "newest";
   let priceRange = { min: "", max: "" };
+  let currentPage = 1;
+  let pageSize = 30;
+  let totalPages = 1;
 
   onMount(async () => {
     if (!$user.userId || !$user.location) {
@@ -35,25 +38,30 @@
     }
   });
 
-  async function loadClassifieds() {
+  async function loadClassifieds(page = 1) {
     isLoading = true;
     error = null;
-
     try {
-      const response = await classifiedsApi.getClassifieds();
-      console.log("Classifieds response:", response); // Debug log
-      
+      const response = await classifiedsApi.getClassifieds(page - 1, pageSize);
+      console.log('Classifieds API response:', response);
       if (response && response.data) {
         classifieds = response.data;
+        currentPage = (response.currentPage ?? response.page ?? (page - 1)) + 1;
+        pageSize = response.size ?? pageSize;
+        totalPages = response.totalPages ?? 1;
+        if (currentPage > totalPages && totalPages > 0) {
+          currentPage = totalPages;
+        }
+        console.log('Pagination state:', { currentPage, totalPages });
       } else {
         classifieds = [];
+        totalPages = 1;
       }
-      
-      console.log("Processed classifieds:", classifieds); // Debug log
     } catch (err) {
       console.error("Error loading classifieds:", err);
       error = "Failed to load classifieds. Please try again.";
       classifieds = [];
+      totalPages = 1;
     } finally {
       isLoading = false;
     }
@@ -65,18 +73,22 @@
     } else {
       selectedCategories = [...selectedCategories, category];
     }
+    currentPage = 1;
     loadClassifieds();
   }
 
   function handleSearch() {
+    currentPage = 1;
     loadClassifieds();
   }
 
   function handleSortChange() {
+    currentPage = 1;
     loadClassifieds();
   }
 
   function handlePriceRangeChange() {
+    currentPage = 1;
     loadClassifieds();
   }
 
@@ -85,7 +97,22 @@
     selectedCategories = [];
     sortBy = "newest";
     priceRange = { min: "", max: "" };
+    currentPage = 1;
     loadClassifieds();
+  }
+
+  function getPageNumbers() {
+    const pages = [];
+    for (let i = 1; i <= totalPages; i++) {
+      pages.push(i);
+    }
+    return pages;
+  }
+
+  function goToPage(page: number) {
+    if (page >= 1 && page <= totalPages && page !== currentPage) {
+      loadClassifieds(page);
+    }
   }
 </script>
 
@@ -291,6 +318,29 @@
                   </a>
                 </div>
               {/each}
+            </div>
+          {/if}
+
+          <!-- Pagination Controls -->
+          {#if totalPages > 1}
+            <div class="flex justify-center mt-8 items-center gap-4">
+              <button
+                on:click={() => goToPage(currentPage - 1)}
+                disabled={currentPage === 1}
+                class="px-4 py-2 rounded-lg bg-purple-500 text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-purple-600 transition-colors"
+              >
+                Previous
+              </button>
+              <span class="text-gray-700 dark:text-gray-300 text-sm">
+                Page {currentPage} of {totalPages}
+              </span>
+              <button
+                on:click={() => goToPage(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                class="px-4 py-2 rounded-lg bg-purple-500 text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-purple-600 transition-colors"
+              >
+                Next
+              </button>
             </div>
           {/if}
         </div>

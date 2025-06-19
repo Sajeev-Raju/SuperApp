@@ -30,6 +30,9 @@
   let selectedTags: string[] = [];
   let availableTags: string[] = [];
   let expandedQuestionId: number | null = null;
+  let currentPage = 1;
+  let pageSize = 50;
+  let totalPages = 1;
 
   // Helper function to safely split tags
   function getQuestionTags(tags: string | null | undefined): string[] {
@@ -58,22 +61,30 @@
     }
   });
 
-  async function loadQuestions() {
+  onMount(() => {
+    loadQuestions(1);
+  });
+
+  async function loadQuestions(page = 1) {
     isLoading = true;
     error = null;
-    
     try {
-      const response = await qandaApi.getQuestions();
+      const response = await qandaApi.getQuestions(page - 1, pageSize);
       if (response && response.data) {
         questions = response.data;
+        currentPage = (response.currentPage ?? response.page ?? (page - 1)) + 1;
+        pageSize = response.size ?? pageSize;
+        totalPages = response.totalPages ?? 1;
       } else {
         questions = [];
+        totalPages = 1;
         error = "No questions found. Make sure you have set your location and are within range of other users.";
       }
     } catch (err) {
       console.error("Error loading questions:", err);
       error = "Failed to load questions. Please try again.";
       questions = [];
+      totalPages = 1;
     } finally {
       isLoading = false;
     }
@@ -91,6 +102,20 @@
     expandedQuestionId = expandedQuestionId === questionId ? null : questionId;
   }
 
+  function getPageNumbers() {
+    const pages = [];
+    for (let i = 1; i <= totalPages; i++) {
+      pages.push(i);
+    }
+    return pages;
+  }
+
+  function goToPage(page: number) {
+    if (page >= 1 && page <= totalPages && page !== currentPage) {
+      loadQuestions(page);
+    }
+  }
+
   $: filteredQuestions = questions.filter(question => {
     // Filter by search query
     const matchesSearch = searchQuery === "" || 
@@ -104,6 +129,10 @@
     
     return matchesSearch && matchesTags;
   });
+
+  $: if (searchQuery || selectedTags.length) {
+    currentPage = 1;
+  }
 </script>
 
 <div class="min-h-screen bg-gray-50 dark:bg-black pt-16 pb-20">
@@ -253,6 +282,29 @@
               </div>
             </div>
           {/each}
+        </div>
+      {/if}
+
+      <!-- Pagination Controls -->
+      {#if totalPages > 1}
+        <div class="flex justify-center mt-8 items-center gap-4">
+          <button
+            on:click={() => goToPage(currentPage - 1)}
+            disabled={currentPage === 1}
+            class="px-4 py-2 rounded-lg bg-purple-500 text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-purple-600 transition-colors"
+          >
+            Previous
+          </button>
+          <span class="text-gray-700 dark:text-gray-300 text-sm">
+            Page {currentPage} of {totalPages}
+          </span>
+          <button
+            on:click={() => goToPage(currentPage + 1)}
+            disabled={currentPage === totalPages}
+            class="px-4 py-2 rounded-lg bg-purple-500 text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-purple-600 transition-colors"
+          >
+            Next
+          </button>
         </div>
       {/if}
     </div>

@@ -12,6 +12,13 @@
   let searchQuery = "";
   let selectedTags: string[] = [];
   let expandedMeetupId: string | null = null;
+  let currentPage = 1;
+  let pageSize = 30;
+  let totalPages = 1;
+
+  onMount(() => {
+    loadMeetups(1);
+  });
 
   onMount(async () => {
     if (!$user.userId || !$user.location) {
@@ -29,20 +36,25 @@
     }
   });
 
-  async function loadMeetups() {
+  async function loadMeetups(page = 1) {
     isLoading = true;
     error = null;
-    
     try {
-      const response = await meetupsApi.getMeetups();
+      const response = await meetupsApi.getMeetups(page - 1, pageSize);
       if (response && response.data) {
         meetups = response.data;
+        currentPage = (response.currentPage ?? response.page ?? (page - 1)) + 1;
+        pageSize = response.size ?? pageSize;
+        totalPages = response.totalPages ?? 1;
       } else {
         meetups = [];
+        totalPages = 1;
       }
     } catch (err) {
       console.error("Error loading meetups:", err);
       error = "Failed to load meetups. Please try again.";
+      meetups = [];
+      totalPages = 1;
     } finally {
       isLoading = false;
     }
@@ -62,6 +74,24 @@
 
   function getMeetupImageUrl(meetupId: string): string {
     return meetupsApi.getMeetupImageUrl(meetupId);
+  }
+
+  function getPageNumbers() {
+    const pages = [];
+    for (let i = 1; i <= totalPages; i++) {
+      pages.push(i);
+    }
+    return pages;
+  }
+
+  function goToPage(page: number) {
+    if (page >= 1 && page <= totalPages && page !== currentPage) {
+      loadMeetups(page);
+    }
+  }
+
+  $: if (searchQuery || selectedTags.length) {
+    currentPage = 1;
   }
 
   $: filteredMeetups = meetups.filter(meetup => {
@@ -291,22 +321,28 @@
             </div>
           {/if}
 
-          <div class="mt-8 flex justify-center">
-            <nav class="inline-flex rounded-md shadow">
-              <a href="#" class="px-4 py-2 rounded-l-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700">
+          <!-- Pagination Controls -->
+          {#if totalPages > 1}
+            <div class="flex justify-center mt-8 items-center gap-4">
+              <button
+                on:click={() => goToPage(currentPage - 1)}
+                disabled={currentPage === 1}
+                class="px-4 py-2 rounded-lg bg-purple-500 text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-purple-600 transition-colors"
+              >
                 Previous
-              </a>
-              <a href="#" class="px-4 py-2 border-t border-b border-gray-300 dark:border-gray-600 bg-secondary-50 dark:bg-secondary-900/20 text-secondary-700 dark:text-secondary-300">
-                1
-              </a>
-              <a href="#" class="px-4 py-2 border-t border-b border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700">
-                2
-              </a>
-              <a href="#" class="px-4 py-2 rounded-r-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700">
+              </button>
+              <span class="text-gray-700 dark:text-gray-300 text-sm">
+                Page {currentPage} of {totalPages}
+              </span>
+              <button
+                on:click={() => goToPage(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                class="px-4 py-2 rounded-lg bg-purple-500 text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-purple-600 transition-colors"
+              >
                 Next
-              </a>
-            </nav>
-          </div>
+              </button>
+            </div>
+          {/if}
         </div>
       </div>
     </div>

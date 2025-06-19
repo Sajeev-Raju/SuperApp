@@ -82,6 +82,7 @@
           {#each navItems as item}
             <a 
               href={item.path}
+              on:click|preventDefault={() => goto(item.path)}
               class={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${isActive(item.path) 
                 ? 'border-purple-500 text-gray-900 dark:text-white'
                 : 'border-transparent text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-white hover:border-purple-300 dark:hover:border-purple-400'}`}
@@ -191,6 +192,7 @@
         {#each navItems as item}
           <a
             href={item.path}
+            on:click|preventDefault={() => { isMobileMenuOpen = false; goto(item.path); }}
             class={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium ${isActive(item.path)
               ? 'border-primary-500 text-primary-700 dark:text-primary-300 bg-primary-50 dark:bg-primary-900/20'
               : 'border-transparent text-gray-500 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
