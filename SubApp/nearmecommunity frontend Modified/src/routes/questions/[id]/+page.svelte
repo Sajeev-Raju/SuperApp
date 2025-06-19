@@ -80,7 +80,7 @@
   }
 </script>
 
-<div class="min-h-screen bg-gray-50 dark:bg-gray-900 pt-16 pb-20">
+<div class="min-h-screen bg-gray-50 dark:bg-black pt-16 pb-20">
   <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="py-6">
       <div class="mb-8">
@@ -105,13 +105,13 @@
           <button class="underline ml-2" on:click={loadQuestion}>Try again</button>
         </div>
       {:else if !question}
-        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-8 text-center">
+        <div class="bg-white dark:bg-black rounded-xl shadow-md p-8 text-center">
           <div class="text-gray-500 dark:text-gray-400">Question not found</div>
         </div>
       {:else}
         <div class="space-y-6">
           <!-- Question -->
-          <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden">
+          <div class="bg-white dark:bg-black rounded-xl shadow-md overflow-hidden border-2 border-purple-500">
             <div class="p-6">
               <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">
                 {question.title}
@@ -138,7 +138,7 @@
           </div>
 
           <!-- Answers -->
-          <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden">
+          <div class="bg-white dark:bg-black rounded-xl shadow-md overflow-hidden border-2 border-purple-500">
             <div class="p-6">
               <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">
                 {question.answers?.length || 0} Answers
@@ -147,7 +147,7 @@
               {#if question.answers && question.answers.length > 0}
                 <div class="space-y-4">
                   {#each question.answers as answer}
-                    <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
+                    <div class="bg-gray-50 dark:bg-black/70 rounded-lg p-4 border border-gray-300 dark:border-gray-700">
                       <p class="text-gray-600 dark:text-gray-300">{answer.description}</p>
                       <div class="mt-2 flex justify-between items-center text-sm text-gray-500 dark:text-gray-400">
                         <div>Answered by {answer.userId || "Anonymous"}</div>
