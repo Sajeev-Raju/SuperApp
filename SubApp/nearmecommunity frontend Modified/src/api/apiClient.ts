@@ -344,8 +344,9 @@ export interface EmergencyMessage {
  * Emergency Messages API functions
  */
 export const emergencyApi = {
-  getMessages: (): Promise<EmergencyMessage[]> => {
-    return apiClient<EmergencyMessage[]>('/api/emergency_messages');
+  getMessages: async (): Promise<EmergencyMessage[]> => {
+    const result = await apiClient<{ data: EmergencyMessage[] }>('/api/emergency_messages/');
+    return Array.isArray(result.data) ? result.data : [];
   },
   
   createMessage: (data: { 
