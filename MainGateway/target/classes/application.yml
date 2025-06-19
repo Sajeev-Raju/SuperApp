@@ -1,0 +1,42 @@
+spring:
+  application:
+    name: main-gateway
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+      routes:
+        - id: registration-service
+          uri: lb://registration-service
+          predicates:
+            - Path=/api/**
+          filters:
+            - StripPrefix=1
+
+server:
+  port: 8082
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics,gateway
+  
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+gateway:
+  registration-service-url: http://registration-service
+  public-paths:
+    - /api/register/start
+    - /api/register/verify-otp
+    - /api/register/validate-username
+    - /api/register/initiate-payment
+    - /api/register/complete
+    - /api/login/send-otp
+    - /api/login/verify
+    - /api/login/continue-with-oldest-logout
+  rate-limit: 100
+  session-timeout-minutes: 100000

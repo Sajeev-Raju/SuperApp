@@ -1,0 +1,119 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  body {
+    @apply bg-white text-gray-900 dark:bg-black dark:text-gray-100;
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-medium leading-tight;
+  }
+
+  h1 {
+    @apply text-3xl md:text-4xl;
+  }
+
+  h2 {
+    @apply text-2xl md:text-3xl;
+  }
+
+  h3 {
+    @apply text-xl md:text-2xl;
+  }
+
+  h4 {
+    @apply text-lg md:text-xl;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply px-4 py-2 rounded-lg font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 hover:border-2 hover:border-purple-500 dark:hover:border-purple-400;
+  }
+
+  .btn-primary {
+    @apply bg-purple-600 text-white hover:bg-purple-700 focus:ring-purple-500;
+  }
+
+  .btn-secondary {
+    @apply bg-purple-500 text-white hover:bg-purple-600 focus:ring-purple-400;
+  }
+
+  .btn-accent {
+    @apply bg-purple-400 text-white hover:bg-purple-500 focus:ring-purple-300;
+  }
+
+  .btn-outline {
+    @apply border border-purple-200 bg-transparent hover:bg-purple-50 focus:ring-purple-500 dark:border-purple-800 dark:hover:bg-purple-900/20;
+  }
+
+  .card {
+    @apply bg-white dark:bg-gray-900 rounded-lg shadow-md overflow-hidden border border-purple-100 dark:border-purple-900/50 transition-all duration-200 hover:border-2 hover:border-purple-500 dark:hover:border-purple-400 hover:shadow-lg hover:shadow-purple-500/20 dark:hover:shadow-purple-400/20;
+  }
+
+  .input {
+    @apply w-full px-3 py-2 border border-purple-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 dark:border-purple-800 dark:bg-gray-900 transition-all duration-200 hover:border-purple-400 dark:hover:border-purple-600;
+  }
+
+  .label {
+    @apply block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1;
+  }
+
+  .badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium transition-all duration-200;
+  }
+
+  .badge-primary {
+    @apply bg-purple-100 text-purple-800 dark:bg-purple-900/50 dark:text-purple-200 hover:border hover:border-purple-500 dark:hover:border-purple-400;
+  }
+
+  .badge-secondary {
+    @apply bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 hover:border hover:border-purple-400 dark:hover:border-purple-500;
+  }
+
+  .badge-accent {
+    @apply bg-purple-50 text-purple-600 dark:bg-purple-900/20 dark:text-purple-400 hover:border hover:border-purple-300 dark:hover:border-purple-600;
+  }
+
+  /* Add hover effects for module cards */
+  .module-card {
+    @apply transition-all duration-200 hover:border-2 hover:border-purple-500 dark:hover:border-purple-400 hover:shadow-lg hover:shadow-purple-500/20 dark:hover:shadow-purple-400/20;
+  }
+
+  /* Add hover effects for list items */
+  .list-item {
+    @apply transition-all duration-200 hover:border-l-4 hover:border-purple-500 dark:hover:border-purple-400;
+  }
+
+  /* Add hover effects for navigation items */
+  .nav-item {
+    @apply transition-all duration-200 hover:border-b-2 hover:border-purple-500 dark:hover:border-purple-400;
+  }
+
+  /* Text area styles */
+  textarea {
+    @apply w-full px-3 py-2 border border-purple-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 dark:border-purple-800 dark:bg-gray-900 transition-all duration-200 hover:border-purple-400 dark:hover:border-purple-600;
+  }
+
+  /* Form group styles */
+  .form-group {
+    @apply mb-4;
+  }
+
+  /* Input group styles */
+  .input-group {
+    @apply relative;
+  }
+
+  /* Select styles */
+  select {
+    @apply w-full px-3 py-2 border border-purple-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 dark:border-purple-800 dark:bg-gray-900 transition-all duration-200 hover:border-purple-400 dark:hover:border-purple-600;
+  }
+}

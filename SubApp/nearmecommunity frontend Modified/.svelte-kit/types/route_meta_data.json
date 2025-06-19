@@ -1,0 +1,21 @@
+{
+	"/": [],
+	"/business": [],
+	"/business/create": [],
+	"/business/[id]": [],
+	"/classifieds": [],
+	"/classifieds/create": [],
+	"/classifieds/[id]": [],
+	"/dashboard": [],
+	"/emergency": [],
+	"/meetups": [],
+	"/meetups/create": [],
+	"/meetups/my-events": [],
+	"/meetups/[id]": [],
+	"/polls": [],
+	"/profile": [],
+	"/questions": [],
+	"/questions/create": [],
+	"/questions/[id]": [],
+	"/setup": []
+}

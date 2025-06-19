@@ -1,0 +1,54 @@
+ClassifiedById Endpoint: Authentication, Radius Validation, and Response
+===============================================================
+
+Endpoint
+--------
+GET /api/classified/{id}
+- Path: /api/classified/{id}
+- Method: GET
+- Headers: Requires X-User-ID (the ID of the user making the request)
+- Path Variable: id (the classified ad's ID)
+
+Step-by-Step Logic
+------------------
+1. Fetch the Classified
+   - The classified is fetched from the database by its ID.
+   - If not found, returns 404 Not Found.
+
+2. Radius Validation
+   - The system fetches the location of:
+     - The current user (from user_locations table, using X-User-ID)
+     - The classified poster (from user_locations, using the classified's userId)
+   - It calculates the distance between the two using the Haversine formula (GeoUtils.haversine).
+   - If the distance is greater than 15 km:
+     - Returns 403 Forbidden with the message: "You are not within 15 km of the classified poster."
+   - If the distance is 15 km or less:
+     - Proceeds to the next step.
+
+3. Authentication/Authorization
+   - There is no special authentication for viewing a classified, other than the radius check.
+   - Any user with a valid X-User-ID header can view a classified if they are within 15 km of the poster.
+
+4. Response Construction
+   - If allowed, the endpoint builds a ClassifiedDTO object with:
+     - id, title, description, price, userId, createdAt, details, categories, notes, questions, and image URL.
+   - Returns this DTO as JSON.
+
+Summary Table
+-------------
+| Step                | Rule/Logic                                                                                 | Result if Fails                |
+|---------------------|-------------------------------------------------------------------------------------------|--------------------------------|
+| Classified Exists   | Must exist in DB                                                                          | 404 Not Found                  |
+| User Location       | Both current user and poster must have a location                                         | (If not found, likely 500)     |
+| Radius Validation   | User must be within 15 km of the classified poster (Haversine formula)                    | 403 Forbidden + error message  |
+| Authentication      | Only requires valid X-User-ID header                                                      | 403 if header missing          |
+| Response            | Returns DTO with all classified details (except image bytes, which are a separate endpoint)|                                |
+
+Key Points
+----------
+- Geo-radius is strictly enforced: Only users within 15 km of the poster can view the classified.
+- No role-based authentication: Any user can view, as long as they pass the radius check.
+- Error messages are clear: 403 for out-of-radius, 404 for not found.
+- Image is returned via a separate endpoint (/api/classified/{id}/image).
+
+If you want to know about the service/repository implementation or want to see the exact SQL/logic for the radius check, let me know! 
