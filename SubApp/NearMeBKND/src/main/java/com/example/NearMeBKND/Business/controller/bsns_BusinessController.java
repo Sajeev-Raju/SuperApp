@@ -229,11 +229,11 @@ public class bsns_BusinessController {
 
     @GetMapping("/image/{businessId}")
     public ResponseEntity<byte[]> getBusinessImage(@PathVariable("businessId") Integer businessId) {
-        bsns_Business business = businessService.getBusinessById(businessId);
-        if (business == null || business.getImage() == null) {
+        byte[] image = businessService.getBusinessImage(businessId);
+        if (image == null) {
             return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.ok().header("Content-Type", "image/jpeg").body(business.getImage());
+        return ResponseEntity.ok().header("Content-Type", "image/jpeg").body(image);
     }
 
     @GetMapping("/mine")

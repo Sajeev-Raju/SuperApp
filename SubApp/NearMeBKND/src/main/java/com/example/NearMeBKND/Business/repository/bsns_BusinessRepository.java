@@ -481,4 +481,14 @@ public class bsns_BusinessRepository {
         b.setActive(rs.getBoolean("active"));
         return b;
     }
+
+    public byte[] findImageByBusinessId(Integer businessId) {
+        String sql = "SELECT image FROM business WHERE business_id = ? AND active = 1";
+        return jdbcTemplate.query(sql, new Object[]{businessId}, rs -> {
+            if (rs.next()) {
+                return rs.getBytes("image");
+            }
+            return null;
+        });
+    }
 } 

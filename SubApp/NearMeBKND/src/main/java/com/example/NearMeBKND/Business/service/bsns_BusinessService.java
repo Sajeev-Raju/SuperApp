@@ -518,4 +518,8 @@ public class bsns_BusinessService {
         int offset = page * size;
         return businessRepository.findAllWithinRadiusPaged(userId, userLocation.getLatitude(), userLocation.getLongitude(), businessRadiusKm, size, offset);
     }
+
+    public byte[] getBusinessImage(Integer businessId) {
+        return businessRepository.findImageByBusinessId(businessId);
+    }
 }
