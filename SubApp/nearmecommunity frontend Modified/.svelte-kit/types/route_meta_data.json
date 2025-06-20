@@ -13,6 +13,7 @@
 	"/meetups/my-events": [],
 	"/meetups/[id]": [],
 	"/polls": [],
+	"/polls/create": [],
 	"/polls/[collectionId]": [],
 	"/profile": [],
 	"/questions": [],

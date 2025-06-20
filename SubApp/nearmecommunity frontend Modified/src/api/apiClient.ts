@@ -277,6 +277,18 @@ export const pollsApi = {
   getPollCollectionDetails: (collectionId: number) => {
     return apiClient<PollCollection>(`/api/polls/collection/${collectionId}`);
   },
+
+  createPollCollection: (data: { collectionTitle: string; questions: { questionText: string; pollOptions: string[]; selectionLimit: number }[] }) => {
+    return apiClient('/api/polls/collection', { method: 'POST', body: data });
+  },
+
+  deletePollCollection: (collectionId: number) => {
+    return apiClient(`/api/polls/collection/${collectionId}`, { method: 'DELETE' });
+  },
+
+  deletePollQuestion: (questionId: number) => {
+    return apiClient(`/api/polls/question/${questionId}`, { method: 'DELETE' });
+  },
 };
 
 /**

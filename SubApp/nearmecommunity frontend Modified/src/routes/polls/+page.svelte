@@ -52,7 +52,10 @@
     <div class="py-6">
       <div class="mb-8 flex items-center justify-between">
         <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Poll Collections</h1>
-        <UserLocationBadge />
+        <div class="flex gap-4 items-center">
+          <a href="/polls/create" class="btn btn-primary">Create Poll</a>
+          <UserLocationBadge />
+        </div>
       </div>
       {#if loading}
         <LoadingSpinner />
