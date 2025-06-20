@@ -6,7 +6,6 @@ public class PollOption {
     private String optionText;
     private int voteCount;
 
-    // Getters and setters
     public int getOptionId() { return optionId; }
     public void setOptionId(int optionId) { this.optionId = optionId; }
     public int getQuestionId() { return questionId; }

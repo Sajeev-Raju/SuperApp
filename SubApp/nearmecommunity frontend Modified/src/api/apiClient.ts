@@ -221,6 +221,16 @@ export interface VotedPoll {
   votedOptions: string[];
 }
 
+export interface PollCollection {
+  collectionId: number;
+  collectionTitle: string;
+  createdAt: string;
+  userId: string;
+  latitude: number;
+  longitude: number;
+  questions: PollQuestion[];
+}
+
 export const pollsApi = {
   getPolls: (page = 0, size = 30) => {
     return apiClient<PollQuestion[]>(`/api/polls/questions/?page=${page}&size=${size}`);
@@ -258,6 +268,14 @@ export const pollsApi = {
   
   deletePoll: (id: string) => {
     return apiClient(`/api/polls/questions/${id}`, { method: 'DELETE' });
+  },
+
+  getPollCollections: (page = 0, size = 10) => {
+    return apiClient<{ content: PollCollection[]; page: number; size: number; totalElements: number }>(`/api/polls/collection?page=${page}&size=${size}`);
+  },
+
+  getPollCollectionDetails: (collectionId: number) => {
+    return apiClient<PollCollection>(`/api/polls/collection/${collectionId}`);
   },
 };
 

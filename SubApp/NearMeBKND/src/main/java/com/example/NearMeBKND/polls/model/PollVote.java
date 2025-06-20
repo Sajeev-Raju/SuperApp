@@ -7,7 +7,6 @@ public class PollVote {
     private int optionId;
     private String createdAt;
 
-    // Getters and setters
     public int getVoteId() { return voteId; }
     public void setVoteId(int voteId) { this.voteId = voteId; }
     public String getUserId() { return userId; }

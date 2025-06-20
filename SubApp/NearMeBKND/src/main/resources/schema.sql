@@ -167,23 +167,41 @@ CREATE TABLE IF NOT EXISTS emergency_question (
 -- );
 
 -- Polls Module Tables
-CREATE TABLE IF NOT EXISTS poll_questions (
-    question_id INTEGER PRIMARY KEY,
+-- Polls Module Tables  
+
+CREATE TABLE poll_collection (
+    collection_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    collection_title TEXT NOT NULL,
+    created_at TEXT NOT NULL,
     user_id TEXT NOT NULL,
+    latitude REAL NOT NULL,
+    longitude REAL NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES user_locations(user_id) ON DELETE CASCADE
+);
+
+-- Index for user_id lookups
+CREATE INDEX idx_poll_collection_user_id ON poll_collection(user_id);
+
+-- Index for location-based queries
+CREATE INDEX idx_poll_collection_location ON poll_collection(latitude, longitude);
+
+-- Index for sorting by creation date
+CREATE INDEX idx_poll_collection_created_at ON poll_collection(created_at DESC);
+
+-- Index for collection title searches
+CREATE INDEX idx_poll_collection_title ON poll_collection(collection_title);
+
+CREATE TABLE poll_questions (
+    question_id INTEGER PRIMARY KEY AUTOINCREMENT,
     question_text TEXT NOT NULL,
     selection_limit INTEGER NOT NULL,
     selection_mode TEXT NOT NULL,
-    latitude REAL NOT NULL,
-    longitude REAL NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES user_locations(user_id)
+    collection_id INTEGER NOT NULL,
+    FOREIGN KEY (collection_id) REFERENCES poll_collection(collection_id) ON DELETE CASCADE
 );
 
-CREATE INDEX IF NOT EXISTS idx_poll_questions_latitude ON poll_questions(latitude);
-CREATE INDEX IF NOT EXISTS idx_poll_questions_longitude ON poll_questions(longitude);
-CREATE INDEX IF NOT EXISTS idx_poll_questions_created_at ON poll_questions(created_at);
-CREATE INDEX IF NOT EXISTS idx_poll_questions_user_id ON poll_questions(user_id);
-
+-- Index for collection_id lookups
+CREATE INDEX idx_poll_questions_collection_id ON poll_questions(collection_id);
 
 CREATE TABLE IF NOT EXISTS poll_options (
     option_id INTEGER PRIMARY KEY,
@@ -203,6 +221,7 @@ CREATE TABLE IF NOT EXISTS poll_votes (
     FOREIGN KEY (option_id) REFERENCES poll_options(option_id) ON DELETE CASCADE,
     UNIQUE(user_id, question_id, option_id)
 );
+
 
 -- Meetup Module Tables
 CREATE TABLE IF NOT EXISTS mtp_meetup (

@@ -3,36 +3,32 @@ package com.example.NearMeBKND.polls.repository;
 import com.example.NearMeBKND.polls.model.PollOption;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
+import java.sql.PreparedStatement;
+import java.sql.Statement;
 
 @Repository
 public class PollOptionRepository {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
-    private final RowMapper<PollOption> rowMapper = (rs, rowNum) -> {
-        PollOption option = new PollOption();
-        option.setOptionId(rs.getInt("option_id"));
-        option.setQuestionId(rs.getInt("question_id"));
-        option.setOptionText(rs.getString("option_text"));
-        option.setVoteCount(rs.getInt("vote_count"));
-        return option;
-    };
-
-    public void createOption(int questionId, String optionText) {
+    public int insertPollOption(PollOption option) {
         String sql = "INSERT INTO poll_options (question_id, option_text) VALUES (?, ?)";
-        jdbcTemplate.update(sql, questionId, optionText);
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+        jdbcTemplate.update(connection -> {
+            PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+            ps.setInt(1, option.getQuestionId());
+            ps.setString(2, option.getOptionText());
+            return ps;
+        }, keyHolder);
+        return keyHolder.getKey().intValue();
     }
 
-    public List<PollOption> getOptionsWithVoteCount(int questionId) {
-        String sql = "SELECT o.*, COUNT(v.vote_id) as vote_count " +
-                     "FROM poll_options o " +
-                     "LEFT JOIN poll_votes v ON o.option_id = v.option_id " +
-                     "WHERE o.question_id = ? " +
-                     "GROUP BY o.option_id";
-        return jdbcTemplate.query(sql, rowMapper, questionId);
+    public void deleteByQuestionId(int questionId) {
+        String sql = "DELETE FROM poll_options WHERE question_id = ?";
+        jdbcTemplate.update(sql, questionId);
     }
 } 

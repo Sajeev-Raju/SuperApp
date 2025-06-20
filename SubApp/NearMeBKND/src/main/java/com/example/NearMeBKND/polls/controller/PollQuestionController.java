@@ -1,266 +1,238 @@
 package com.example.NearMeBKND.polls.controller;
 
-import com.example.NearMeBKND.polls.model.PollOption;
-import com.example.NearMeBKND.polls.model.PollQuestion;
-import com.example.NearMeBKND.polls.service.PollQuestionService;
+import com.example.NearMeBKND.polls.model.CreatePollCollectionRequest;
+import com.example.NearMeBKND.polls.model.PaginatedResponse;
+import com.example.NearMeBKND.polls.model.VoteRequest;
+import com.example.NearMeBKND.polls.service.PollCollectionService;
 import com.example.NearMeBKND.polls.service.PollVoteService;
-import com.example.NearMeBKND.service.UserLocationService;
+import com.example.NearMeBKND.nearme.repository.UserLocationRepository;
 import com.example.NearMeBKND.nearme.model.UserLocation;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.Map;
-import java.util.ArrayList;
+import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/polls/questions")
+@RequestMapping("/api/polls")
 public class PollQuestionController {
-
-    private static final Logger logger = LoggerFactory.getLogger(PollQuestionController.class);
+    private static final int DEFAULT_PAGE_SIZE = 30;
 
     @Autowired
-    private PollQuestionService pollQuestionService;
-
+    private PollCollectionService pollCollectionService;
     @Autowired
     private PollVoteService pollVoteService;
-
     @Autowired
-    private UserLocationService userLocationService;
+    private UserLocationRepository userLocationRepository;
 
-    // POST /api/questions - handles both single and multiple questions
-    @PostMapping
-    public ResponseEntity<?> createQuestion(
-            @RequestHeader("X-User-ID") String userId,
-            @RequestBody Object payload) {
-        logger.info("[POST /api/questions] userId={}, payload={}", userId, payload);
-        // Validate user location (same as classified)
-        UserLocation userLocation = userLocationService.getUserLocation(userId);
-        if (userLocation == null) {
-            return ResponseEntity.status(404)
-                .body(Map.of("error", "User location not found. Please update your location first."));
+    private ResponseEntity<?> validateUserAndGetLocation(String userId) {
+        Optional<UserLocation> userLocationOpt = userLocationRepository.findByUserId(userId);
+        if (userLocationOpt.isEmpty()) {
+            return ResponseEntity.badRequest().body(
+                java.util.Map.of(
+                    "error", "Bad Request",
+                    "message", "User location not found. Please set your location first."
+                )
+            );
         }
-        // Handle single question
-        if (payload instanceof Map) {
-            Map<String, Object> singleQuestion = (Map<String, Object>) payload;
-            String questionText = (String) singleQuestion.get("questionText");
-            List<String> options = (List<String>) singleQuestion.get("pollOptions");
-            int selectionLimit = singleQuestion.get("selectionLimit") != null ? (int) singleQuestion.get("selectionLimit") : 1;
-
-            if (options.size() < 2 || options.size() > 4) {
-                return ResponseEntity.badRequest().body("Poll options must be between 2 and 4.");
-            }
-            if (selectionLimit < 1 || selectionLimit > options.size()) {
-                return ResponseEntity.badRequest().body("selectionLimit must be between 1 and the number of options.");
-            }
-            // No selectionMode, always UPTO logic
-
-            try {
-                int questionId = pollQuestionService.createQuestionWithPolls(userId, questionText, options, selectionLimit, "UPTO");
-                logger.info("Question created: userId={}, questionId={}", userId, questionId);
-                return ResponseEntity.ok(Map.of("message", "Question created", "questionId", questionId));
-            } catch (Exception e) {
-                logger.error("Error creating question: userId={}, error={}", userId, e.getMessage(), e);
-                return ResponseEntity.status(500).body("Error creating question: " + e.getMessage());
-            }
-        }
-        // Handle multiple questions
-        else if (payload instanceof List) {
-            List<Map<String, Object>> questions = (List<Map<String, Object>>) payload;
-            List<Map<String, Object>> results = new ArrayList<>();
-            
-            for (Map<String, Object> question : questions) {
-                String questionText = (String) question.get("questionText");
-                List<String> options = (List<String>) question.get("pollOptions");
-                int selectionLimit = question.get("selectionLimit") != null ? (int) question.get("selectionLimit") : 1;
-
-                if (options.size() < 2 || options.size() > 4) {
-                    return ResponseEntity.badRequest().body("Poll options must be between 2 and 4 for question: " + questionText);
-                }
-                if (selectionLimit < 1 || selectionLimit > options.size()) {
-                    return ResponseEntity.badRequest().body("selectionLimit must be between 1 and the number of options for question: " + questionText);
-                }
-                // No selectionMode, always UPTO logic
-
-                int questionId = pollQuestionService.createQuestionWithPolls(userId, questionText, options, selectionLimit, "UPTO");
-                results.add(Map.of(
-                    "questionText", questionText,
-                    "questionId", questionId,
-                    "message", "Question created"
-                ));
-            }
-
-            return ResponseEntity.ok(results);
-        }
-
-        return ResponseEntity.badRequest().body("Invalid request format");
+        return null;
     }
 
-    // POST /api/questions/{id}/vote
-    @PostMapping("/{id}/vote")
-    public ResponseEntity<?> voteOnPoll(
+    @PostMapping("/collection")
+    public ResponseEntity<?> createPollCollection(
             @RequestHeader("X-User-ID") String userId,
-            @PathVariable int id,
-            @RequestBody Map<String, Object> payload) {
-        logger.info("[POST /api/questions/{}/vote] userId={}, optionIds={}", id, userId, payload.get("optionIds"));
-        List<Integer> optionIds = (List<Integer>) payload.get("optionIds");
-        if (optionIds == null || optionIds.isEmpty()) {
-            return ResponseEntity.badRequest().body("You must select at least one option.");
+            @RequestBody CreatePollCollectionRequest request) {
+        // Validate user
+        ResponseEntity<?> validationResponse = validateUserAndGetLocation(userId);
+        if (validationResponse != null) {
+            return validationResponse;
         }
 
-        // Fetch selectionLimit for this question
-        PollQuestion question = pollQuestionService.getQuestion(id, userId);
-        if (question == null) {
-            return ResponseEntity.status(404).body("Poll question not found or not accessible.");
-        }
-        int selectionLimit = question.getSelectionLimit();
-
-        if (optionIds.size() < 1 || optionIds.size() > selectionLimit) {
-            return ResponseEntity.badRequest().body("You can select up to " + selectionLimit + " options.");
-        }
-
-        boolean success = pollVoteService.vote(userId, id, optionIds);
-
-        if (!success) {
-            logger.warn("Voting failed: userId={}, questionId={}", userId, id);
-            // Check if the failure is due to invalid optionIds
-            return ResponseEntity.badRequest().body("Voting failed. One or more optionIds are invalid for this question, or you might be the owner, or already voted.");
-        }
-        logger.info("Vote recorded: userId={}, questionId={}", userId, id);
-        return ResponseEntity.ok(Map.of("message", "Vote recorded"));
+        UserLocation userLocation = userLocationRepository.findByUserId(userId).get();
+        double latitude = userLocation.getLatitude();
+        double longitude = userLocation.getLongitude();
+        int collectionId = pollCollectionService.createPollCollection(userId, latitude, longitude, request);
+        return ResponseEntity.ok().body(
+                java.util.Map.of(
+                        "message", "Poll collection created successfully",
+                        "collectionId", collectionId
+                )
+        );
     }
 
-    // GET /api/questions/{id}/results
-    @GetMapping("/{id}/results")
-    public ResponseEntity<?> getResults(
+    @GetMapping("/collection")
+    public ResponseEntity<?> getPollCollections(
             @RequestHeader("X-User-ID") String userId,
-            @PathVariable int id) {
-        logger.info("[GET /api/questions/{}/results] userId={}", id, userId);
-        List<PollOption> results = pollQuestionService.getResults(id, userId);
-        return ResponseEntity.ok(results);
+            @RequestParam(defaultValue = "0") int page) {
+        // Validate user
+        ResponseEntity<?> validationResponse = validateUserAndGetLocation(userId);
+        if (validationResponse != null) {
+            return validationResponse;
+        }
+
+        UserLocation userLocation = userLocationRepository.findByUserId(userId).get();
+        return ResponseEntity.ok(pollCollectionService.getPaginatedPollCollections(
+            userId,
+            userLocation.getLatitude(),
+            userLocation.getLongitude(),
+            page,
+            DEFAULT_PAGE_SIZE
+        ));
     }
 
-    // GET /api/questions
-    @GetMapping("/")
-    public ResponseEntity<?> getAllQuestions(
+    @PostMapping("/question/{questionId}/vote")
+    public ResponseEntity<?> voteOnQuestion(
             @RequestHeader("X-User-ID") String userId,
-            @RequestParam(value = "page", defaultValue = "0") int page,
-            @RequestParam(value = "size", defaultValue = "30") int size) {
-        logger.info("[GET /api/questions] userId={}, page={}, size={}", userId, page, size);
-        UserLocation userLocation = userLocationService.getUserLocation(userId);
-        if (userLocation == null) {
-            return ResponseEntity.status(404)
-                .body(Map.of("error", "User location not found. Please update your location first."));
+            @PathVariable int questionId,
+            @RequestBody VoteRequest voteRequest) {
+        // Validate user
+        ResponseEntity<?> validationResponse = validateUserAndGetLocation(userId);
+        if (validationResponse != null) {
+            return validationResponse;
         }
-        double radiusKm = 15.0;
-        int offset = page * size;
-        int total = pollQuestionService.countQuestionsInRadius(userLocation.getLatitude(), userLocation.getLongitude(), radiusKm);
-        int totalPages = (int) Math.ceil((double) total / size);
-        List<PollQuestion> questions = pollQuestionService.getQuestionsInRadiusPaged(userLocation.getLatitude(), userLocation.getLongitude(), radiusKm, size, offset);
-        List<Map<String, Object>> pageContent = new ArrayList<>();
-        for (PollQuestion question : questions) {
-            pageContent.add(Map.of(
-                "questionId", question.getQuestionId(),
-                "userId", question.getUserId(),
-                "questionText", question.getQuestionText(),
-                "selectionLimit", question.getSelectionLimit(),
-                "selectionMode", question.getSelectionMode(),
-                "latitude", question.getLatitude(),
-                "longitude", question.getLongitude(),
-                "createdAt", question.getCreatedAt()
-            ));
-        }
-        Map<String, Object> response = new java.util.LinkedHashMap<>();
-        response.put("data", pageContent);
-        response.put("currentPage", page);
-        response.put("size", size);
-        response.put("count", pageContent.size());
-        response.put("totalPages", totalPages);
-        return ResponseEntity.ok(response);
-    }
 
-    // DELETE /api/questions/{id}
-    @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteQuestion(
-            @RequestHeader("X-User-ID") String userId,
-            @PathVariable int id) {
-        logger.info("[DELETE /api/questions/{}] userId={}", id, userId);
-        boolean deleted = pollQuestionService.deleteQuestion(userId, id);
+        java.util.Map<String, Object> result = pollVoteService.voteOnQuestion(userId, questionId, voteRequest);
         
-        if (!deleted) {
-            logger.warn("Delete failed: userId={}, questionId={}", userId, id);
-            return ResponseEntity.badRequest().body("Cannot delete question. You must be the owner.");
+        if ((Boolean) result.get("success")) {
+            return ResponseEntity.ok().body(result);
+        } else {
+            return ResponseEntity.badRequest().body(result);
         }
-        logger.info("Question deleted: userId={}, questionId={}", userId, id);
-        return ResponseEntity.ok(Map.of("message", "Question deleted successfully"));
     }
 
-    // GET /api/questions/voted - get all polls the user has voted on
-    @GetMapping("/voted")
-    public ResponseEntity<?> getVotedPolls(@RequestHeader("X-User-ID") String userId) {
-        // Fetch all votes by this user
-        List<Map<String, Object>> votedPolls = pollVoteService.getVotedPollsByUser(userId);
-        return ResponseEntity.ok(votedPolls);
-    }
-
-    @PutMapping("/{id}/vote")
-    public ResponseEntity<?> updateVoteOnPoll(
+    @GetMapping("/question/{questionId}/results")
+    public ResponseEntity<?> getQuestionResults(
             @RequestHeader("X-User-ID") String userId,
-            @PathVariable int id,
-            @RequestBody Map<String, Object> payload) {
-        List<Integer> optionIds = (List<Integer>) payload.get("optionIds");
-        if (optionIds == null || optionIds.isEmpty()) {
-            return ResponseEntity.badRequest().body("You must select at least one option.");
+            @PathVariable int questionId) {
+        // Validate user
+        ResponseEntity<?> validationResponse = validateUserAndGetLocation(userId);
+        if (validationResponse != null) {
+            return validationResponse;
         }
-        // Enhanced validation
-        String voteOwner = pollVoteService.getVoteOwner(id, userId);
-        if (voteOwner == null) {
-            return ResponseEntity.status(400).body("You have not voted on this question yet. Please cast a vote before attempting to update it.");
+
+        java.util.Map<String, Object> result = pollVoteService.getQuestionResults(userId, questionId);
+        
+        if ((Boolean) result.get("success")) {
+            return ResponseEntity.ok().body(result);
+        } else {
+            return ResponseEntity.badRequest().body(result);
         }
-        if (!voteOwner.equals(userId)) {
-            return ResponseEntity.status(403).body("You are not authorized to update another user's vote.");
-        }
-        boolean success = pollVoteService.updateVote(userId, id, optionIds);
-        if (!success) {
-            return ResponseEntity.badRequest().body("Vote update failed. You might not have voted before, or selected invalid options.");
-        }
-        return ResponseEntity.ok(Map.of("message", "Vote updated"));
     }
 
-    @GetMapping("/{question_id}")
-    public ResponseEntity<?> getPollQuestionById(
-            @PathVariable int question_id,
+    @GetMapping("/my-votes")
+    public ResponseEntity<?> getAllUserVotes(
             @RequestHeader("X-User-ID") String userId) {
-        // Check if user exists in user_locations
-        com.example.NearMeBKND.nearme.model.UserLocation userLocation;
+        // Validate user
+        ResponseEntity<?> validationResponse = validateUserAndGetLocation(userId);
+        if (validationResponse != null) {
+            return validationResponse;
+        }
+
+        java.util.Map<String, Object> result = pollVoteService.getAllUserVotes(userId);
+        
+        if ((Boolean) result.get("success")) {
+            return ResponseEntity.ok().body(result);
+        } else {
+            return ResponseEntity.badRequest().body(result);
+        }
+    }
+
+    @DeleteMapping("/question/{questionId}")
+    public ResponseEntity<?> deletePollQuestion(
+            @RequestHeader("X-User-ID") String userId,
+            @PathVariable int questionId) {
+        // Validate user
+        ResponseEntity<?> validationResponse = validateUserAndGetLocation(userId);
+        if (validationResponse != null) {
+            return validationResponse;
+        }
+
         try {
-            userLocation = userLocationService.getUserLocation(userId);
+            // Check if user is the owner of the question's collection
+            boolean isOwner = pollCollectionService.isUserCollectionOwner(userId, questionId, true);
+            System.out.println("[DEBUG] DELETE /question/" + questionId + " | userId='" + userId + "' | isOwner=" + isOwner);
+            if (!isOwner) {
+                return ResponseEntity.status(403).body(
+                    java.util.Map.of(
+                        "error", "Forbidden",
+                        "message", "You are not authorized to delete this question. Only the collection owner can delete questions."
+                    )
+                );
+            }
+
+            // Delete the question
+            pollCollectionService.deletePollQuestion(questionId);
+            return ResponseEntity.ok().body(
+                java.util.Map.of(
+                    "message", "Question deleted successfully"
+                )
+            );
         } catch (Exception e) {
-            return ResponseEntity.status(403).body(Map.of("error", "User ID not found in user_locations. Please update your location first."));
+            return ResponseEntity.status(404).body(
+                java.util.Map.of(
+                    "error", "Not Found",
+                    "message", "Question not found or could not be deleted"
+                )
+            );
         }
-        // Fetch poll question
-        PollQuestion question = pollQuestionService.getQuestion(question_id, userId);
-        if (question == null) {
-            return ResponseEntity.status(404).body(Map.of("error", "Poll question not found or not accessible within your radius."));
+    }
+
+    @DeleteMapping("/collection/{collectionId}")
+    public ResponseEntity<?> deletePollCollection(
+            @RequestHeader("X-User-ID") String userId,
+            @PathVariable int collectionId) {
+        // Validate user
+        ResponseEntity<?> validationResponse = validateUserAndGetLocation(userId);
+        if (validationResponse != null) {
+            return validationResponse;
         }
-        // Fetch poll options
-        List<com.example.NearMeBKND.polls.model.PollOption> options = pollQuestionService.getPollOptionRepository().getOptionsWithVoteCount(question_id);
-        // Fetch poll votes (per option)
-        // For simplicity, vote counts are already included in options
-        // Build response
-        Map<String, Object> response = new java.util.LinkedHashMap<>();
-        response.put("questionId", question.getQuestionId());
-        response.put("userId", question.getUserId());
-        response.put("questionText", question.getQuestionText());
-        response.put("selectionLimit", question.getSelectionLimit());
-        response.put("selectionMode", question.getSelectionMode());
-        response.put("latitude", question.getLatitude());
-        response.put("longitude", question.getLongitude());
-        response.put("createdAt", question.getCreatedAt());
-        response.put("options", options);
-        return ResponseEntity.ok(response);
+
+        try {
+            // Check if user is the owner of the collection
+            boolean isOwner = pollCollectionService.isUserCollectionOwner(userId, collectionId, false);
+            System.out.println("[DEBUG] DELETE /collection/" + collectionId + " | userId='" + userId + "' | isOwner=" + isOwner);
+            if (!isOwner) {
+                return ResponseEntity.status(403).body(
+                    java.util.Map.of(
+                        "error", "Forbidden",
+                        "message", "You are not authorized to delete this collection. Only the collection owner can delete it."
+                    )
+                );
+            }
+
+            // Delete the collection (this will cascade delete all questions)
+            pollCollectionService.deletePollCollection(collectionId);
+            return ResponseEntity.ok().body(
+                java.util.Map.of(
+                    "message", "Collection and all its questions deleted successfully"
+                )
+            );
+        } catch (Exception e) {
+            return ResponseEntity.status(404).body(
+                java.util.Map.of(
+                    "error", "Not Found",
+                    "message", "Collection not found or could not be deleted"
+                )
+            );
+        }
+    }
+
+    @GetMapping("/collection/{collectionId}")
+    public ResponseEntity<?> getPollCollectionDetails(
+            @RequestHeader("X-User-ID") String userId,
+            @PathVariable int collectionId) {
+        // Validate user
+        ResponseEntity<?> validationResponse = validateUserAndGetLocation(userId);
+        if (validationResponse != null) {
+            return validationResponse;
+        }
+
+        java.util.Map<String, Object> result = pollCollectionService.getPollCollectionDetails(userId, collectionId);
+        
+        if ((Boolean) result.get("success")) {
+            return ResponseEntity.ok().body(result);
+        } else {
+            return ResponseEntity.badRequest().body(result);
+        }
     }
 } 
