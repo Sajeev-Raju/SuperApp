@@ -78,6 +78,16 @@
       isSubmittingAnswer = false;
     }
   }
+
+  function formatDate(dateString: string): string {
+    if (!dateString) return '';
+    // Try to parse as ISO, else replace space with T
+    let d = new Date(dateString);
+    if (isNaN(d.getTime()) && dateString.includes(' ')) {
+      d = new Date(dateString.replace(' ', 'T'));
+    }
+    return isNaN(d.getTime()) ? '' : d.toLocaleDateString();
+  }
 </script>
 
 <div class="min-h-screen bg-gray-50 dark:bg-black pt-16 pb-20">
@@ -151,7 +161,7 @@
                       <p class="text-gray-600 dark:text-gray-300">{answer.description}</p>
                       <div class="mt-2 flex justify-between items-center text-sm text-gray-500 dark:text-gray-400">
                         <div>Answered by {answer.userId || "Anonymous"}</div>
-                        <div>{new Date(answer.createdAt).toLocaleDateString()}</div>
+                        <div>{formatDate(answer.createdAt)}</div>
                       </div>
                     </div>
                   {/each}

@@ -12,6 +12,7 @@
   let availableTags: string[] = [];
   let isLoading = false;
   let error: string | null = null;
+  let newTag = "";
 
   onMount(async () => {
     if (!$user.userId || !$user.location) {
@@ -59,6 +60,18 @@
     } else {
       selectedTags = [...selectedTags, tag];
     }
+  }
+
+  function addNewTag() {
+    const tag = newTag.trim();
+    if (tag && !selectedTags.includes(tag)) {
+      selectedTags = [...selectedTags, tag];
+    }
+    newTag = "";
+  }
+
+  function removeTag(tag: string) {
+    selectedTags = selectedTags.filter(t => t !== tag);
   }
 </script>
 
@@ -108,12 +121,30 @@
             ></textarea>
           </div>
 
-          {#if availableTags.length > 0}
-            <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Tags
-              </label>
-              <div class="flex flex-wrap gap-2">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Tags
+            </label>
+            <div class="flex flex-wrap gap-2 mb-2">
+              {#each selectedTags as tag}
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-200 mr-1">
+                  {tag}
+                  <button type="button" class="ml-2 text-purple-500 hover:text-purple-700" on:click={() => removeTag(tag)}>&times;</button>
+                </span>
+              {/each}
+            </div>
+            <div class="flex gap-2">
+              <input
+                type="text"
+                bind:value={newTag}
+                placeholder="Add a tag..."
+                class="input flex-1"
+                on:keydown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addNewTag(); } }}
+              />
+              <button type="button" class="btn btn-secondary" on:click={addNewTag}>Add</button>
+            </div>
+            {#if availableTags.length > 0}
+              <div class="flex flex-wrap gap-2 mt-2">
                 {#each availableTags as tag}
                   <button
                     type="button"
@@ -128,8 +159,8 @@
                   </button>
                 {/each}
               </div>
-            </div>
-          {/if}
+            {/if}
+          </div>
 
           <div class="flex justify-end gap-4">
             <button

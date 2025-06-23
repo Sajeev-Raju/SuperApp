@@ -28,11 +28,12 @@
   let error: string | null = null;
   let searchQuery = "";
   let selectedTags: string[] = [];
-  let availableTags: string[] = [];
+  let availableTags: any[] = [];
   let expandedQuestionId: number | null = null;
   let currentPage = 1;
   let pageSize = 50;
   let totalPages = 1;
+  let visibleTagCount = 10;
 
   // Helper function to safely split tags
   function getQuestionTags(tags: string | null | undefined): string[] {
@@ -101,11 +102,12 @@
     }
   }
 
-  function toggleTag(tag: string) {
-    if (selectedTags.includes(tag)) {
-      selectedTags = selectedTags.filter(t => t !== tag);
+  function toggleTag(tag: any) {
+    const tagName = typeof tag === 'string' ? tag : tag.tagName;
+    if (selectedTags.includes(tagName)) {
+      selectedTags = selectedTags.filter(t => t !== tagName);
     } else {
-      selectedTags = [...selectedTags, tag];
+      selectedTags = [...selectedTags, tagName];
     }
   }
 
@@ -143,6 +145,28 @@
 
   $: if (searchQuery || selectedTags.length) {
     currentPage = 1;
+  }
+
+  function formatDate(dateString: string): string {
+    if (!dateString) return '';
+    let str = dateString.replace(' ', 'T');
+    // If no timezone, append Z (treat as UTC)
+    if (!/Z|[+-]\d{2}:?\d{2}$/.test(str)) {
+      str += 'Z';
+    }
+    let d = new Date(str);
+    if (isNaN(d.getTime())) {
+      return dateString; // fallback to raw string
+    }
+    return d.toLocaleDateString();
+  }
+
+  function showMoreTags() {
+    visibleTagCount += 10;
+  }
+
+  function showLessTags() {
+    visibleTagCount = 10;
   }
 </script>
 
@@ -186,19 +210,24 @@
           {#if availableTags.length > 0}
             <div class="mt-4">
               <div class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Filter by tags:</div>
-              <div class="flex flex-wrap gap-2">
-                {#each availableTags as tag}
+              <div class="flex flex-wrap gap-2 items-center">
+                {#each availableTags.slice(0, visibleTagCount) as tag}
                   <button
                     on:click={() => toggleTag(tag)}
                     class={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium transition-colors ${
-                      selectedTags.includes(tag)
+                      selectedTags.includes(tag.tagName)
                         ? "bg-primary-100 text-primary-800 dark:bg-primary-900/40 dark:text-primary-300"
                         : "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
                     }`}
                   >
-                    {tag}
+                    {tag.tagName}
                   </button>
                 {/each}
+                {#if availableTags.length > visibleTagCount}
+                  <span class="ml-2 bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 px-3 py-1 rounded-full font-medium cursor-pointer border-none" on:click={showMoreTags}>Show more tags</span>
+                {:else if visibleTagCount > 10}
+                  <span class="ml-2 bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 px-3 py-1 rounded-full font-medium cursor-pointer border-none" on:click={showLessTags}>Show less</span>
+                {/if}
               </div>
             </div>
           {/if}
@@ -276,7 +305,7 @@
                             <p class="text-gray-600 dark:text-gray-300">{answer.description}</p>
                             <div class="mt-2 flex justify-between items-center text-sm text-gray-500 dark:text-gray-400">
                               <div>Answered by {answer.userId || "Anonymous"}</div>
-                              <div>{new Date(answer.createdAt).toLocaleDateString()}</div>
+                              <div>{formatDate(answer.createdAt)}</div>
                             </div>
                           </div>
                         {/each}
