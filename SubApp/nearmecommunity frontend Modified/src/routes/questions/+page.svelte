@@ -72,6 +72,17 @@
       const response = await qandaApi.getQuestions(page - 1, pageSize);
       if (response && response.data) {
         questions = response.data;
+        // Fetch answer counts for each question
+        await Promise.all(
+          questions.map(async (q, idx) => {
+            try {
+              const details = await qandaApi.getQuestion(q.id);
+              questions[idx].answers = details.answers || [];
+            } catch (e) {
+              questions[idx].answers = [];
+            }
+          })
+        );
         currentPage = (response.currentPage ?? response.page ?? (page - 1)) + 1;
         pageSize = response.size ?? pageSize;
         totalPages = response.totalPages ?? 1;

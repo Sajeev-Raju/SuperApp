@@ -45,7 +45,10 @@
       const response = await classifiedsApi.getClassifieds(page - 1, pageSize);
       console.log('Classifieds API response:', response);
       if (response && response.data) {
-        classifieds = response.data;
+        classifieds = response.data.map((item) => ({
+          ...item,
+          imageUrlString: item.imageUrlString || `http://localhost:8080/api/classified/${item.id}/image`
+        }));
         currentPage = (response.currentPage ?? response.page ?? (page - 1)) + 1;
         pageSize = response.size ?? pageSize;
         totalPages = response.totalPages ?? 1;
@@ -274,6 +277,7 @@
                         src={classified.imageUrlString || 'https://images.pexels.com/photos/2774556/pexels-photo-2774556.jpeg?auto=compress&cs=tinysrgb&w=800'}
                         alt={classified.title}
                         class="w-full h-full object-cover"
+                        onerror="this.src='https://images.pexels.com/photos/2774556/pexels-photo-2774556.jpeg?auto=compress&cs=tinysrgb&w=800'; this.onerror=null;"
                       />
                       <div class="absolute top-0 right-0 m-2">
                         <div class="bg-white dark:bg-gray-900 text-purple-800 dark:text-purple-300 text-xs font-medium px-2 py-1 rounded shadow border border-purple-100 dark:border-purple-900/50">

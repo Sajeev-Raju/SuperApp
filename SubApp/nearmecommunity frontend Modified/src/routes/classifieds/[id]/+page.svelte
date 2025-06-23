@@ -59,14 +59,10 @@
       console.log("Classified response:", response);
       
       if (response) {
-        // Fix image URL if needed
-        if (response.imageUrl) {
-          // Remove any leading slashes
-          const imagePath = response.imageUrl.replace(/^\/+/, '');
-          response.imageUrlString = `http://localhost:8080/${imagePath}`;
-          console.log("Processed image URL:", response.imageUrlString);
-        }
+        // Always set imageUrlString to the correct classifieds endpoint
+        response.imageUrlString = `http://localhost:8080/api/classified/${response.id}/image`;
         classified = response as Classified;
+        console.log("Processed image URL:", response.imageUrlString);
         console.log("Classified data after processing:", classified);
       } else {
         error = "Classified not found";
@@ -185,7 +181,7 @@
   }
 </script>
 
-<div class="min-h-screen bg-black pt-16 pb-20">
+<div class="min-h-screen bg-gray-50 dark:bg-black pt-16 pb-20">
   <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="py-6">
       <div class="mb-8">
@@ -216,18 +212,13 @@
       {:else}
         <div class="space-y-6">
           <!-- Classified Details -->
-          <div class="bg-black rounded-xl shadow-md overflow-hidden border-2 border-purple-500 dark:border-purple-400">
-            <div class="aspect-w-16 aspect-h-9">
+          <div class="bg-white dark:bg-black rounded-xl shadow-md overflow-hidden border-2 border-purple-500 dark:border-purple-400">
+            <div class="h-96 bg-gray-200 dark:bg-black flex items-center justify-center">
               <img
-                src={classified.imageUrlString}
+                src={classified.imageUrlString || 'https://images.pexels.com/photos/2774556/pexels-photo-2774556.jpeg?auto=compress&cs=tinysrgb&w=800'}
                 alt={classified.title}
                 class="object-cover w-full h-96"
-                on:error={() => {
-                  const img = document.querySelector(`img[src="${classified.imageUrlString}"]`);
-                  if (img) {
-                    img.setAttribute('src', 'https://via.placeholder.com/800x450?text=No+Image');
-                  }
-                }}
+                onerror="this.src='https://images.pexels.com/photos/2774556/pexels-photo-2774556.jpeg?auto=compress&cs=tinysrgb&w=800'; this.onerror=null;"
               />
             </div>
             <div class="p-6">
