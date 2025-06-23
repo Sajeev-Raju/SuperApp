@@ -268,11 +268,11 @@
             {#if classified.questions && classified.questions.length > 0}
               <div class="space-y-4">
                 {#each classified.questions as question}
-                  <div class="bg-black p-4 rounded-lg shadow">
+                  <div class="bg-white dark:bg-black p-4 rounded-lg shadow border border-purple-400">
                     <div class="flex justify-between items-start">
                       <div>
-                        <p class="text-gray-800">{question.content}</p>
-                        <p class="text-sm text-gray-500 mt-1">Asked by {question.userId}</p>
+                        <p class="text-gray-800 dark:text-white">{question.content}</p>
+                        <p class="text-sm text-gray-500 dark:text-gray-300 mt-1">Asked by {question.userId}</p>
                       </div>
                       {#if question.userId === $user?.id}
                         <button
