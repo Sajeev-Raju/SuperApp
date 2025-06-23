@@ -29,6 +29,7 @@
   let error: string | null = null;
   let answerContent = "";
   let isSubmittingAnswer = false;
+  let replyStates: Record<number, { open: boolean; content: string }> = {};
 
   onMount(async () => {
     if (!$user.userId || !$user.location) {
@@ -87,6 +88,42 @@
       d = new Date(dateString.replace(' ', 'T'));
     }
     return isNaN(d.getTime()) ? '' : d.toLocaleDateString();
+  }
+
+  async function handleReplySubmit(answer: Answer) {
+    const state = replyStates[answer.id];
+    if (!state || !state.content.trim()) return;
+    try {
+      await apiClient.qanda.postAnswer({
+        questionId: $page.params.id,
+        content: `Reply to @${answer.userId}: ${answer.description}\n${state.content.trim()}`
+      });
+      state.content = "";
+      state.open = false;
+      await loadQuestion();
+    } catch (err) {
+      error = "Failed to post reply. Please try again.";
+    }
+  }
+
+  // Helper to parse reply answers
+  function parseReply(answer: Answer): { isReply: boolean, toUser: string, original: string, reply: string } {
+    const match = answer.description.match(/^Reply to @([^:]+): ([\s\S]*?)(?:\n|$)([\s\S]*)/);
+    if (match) {
+      return {
+        isReply: true,
+        toUser: match[1],
+        original: match[2].trim(),
+        reply: match[3].trim()
+      };
+    }
+    return { isReply: false, toUser: '', original: '', reply: '' };
+  }
+
+  // Check if the current user has already replied to this answer
+  function userHasRepliedTo(answer: Answer): boolean {
+    if (!question || !question.answers) return false;
+    return question.answers.some(a => a.userId === $user.userId && a.description.startsWith(`Reply to @${answer.userId}:`) && a.createdAt > answer.createdAt);
   }
 </script>
 
@@ -157,11 +194,43 @@
               {#if question.answers && question.answers.length > 0}
                 <div class="space-y-4">
                   {#each question.answers as answer}
-                    <div class="bg-gray-50 dark:bg-black/70 rounded-lg p-4 border border-gray-300 dark:border-gray-700">
-                      <p class="text-gray-600 dark:text-gray-300">{answer.description}</p>
-                      <div class="mt-2 flex justify-between items-center text-sm text-gray-500 dark:text-gray-400">
-                        <div>Answered by {answer.userId || "Anonymous"}</div>
-                        <div>{formatDate(answer.createdAt)}</div>
+                    <div class={parseReply(answer).isReply
+                      ? "bg-gray-50 dark:bg-black/70 rounded-lg p-4 border border-blue-200 dark:border-blue-700"
+                      : "bg-gray-50 dark:bg-black/70 rounded-lg p-4 border border-gray-300 dark:border-gray-700"}>
+                      {#if parseReply(answer).isReply}
+                        <blockquote class="bg-gray-100 dark:bg-gray-800 border-l-4 border-purple-500 dark:border-purple-400 p-2 mb-2 text-sm text-gray-700 dark:text-gray-200">
+                          {parseReply(answer).original}
+                        </blockquote>
+                        <p class="text-gray-800 dark:text-white mb-2">{parseReply(answer).reply}</p>
+                        <div class="mt-2 flex justify-between items-center text-sm text-gray-500 dark:text-gray-400">
+                          <div>Reply by {answer.userId || "Anonymous"} to @{parseReply(answer).toUser}</div>
+                          <div>{formatDate(answer.createdAt)}</div>
+                        </div>
+                      {:else}
+                        <p class="text-gray-600 dark:text-gray-300">{answer.description}</p>
+                        <div class="mt-2 flex justify-between items-center text-sm text-gray-500 dark:text-gray-400">
+                          <div>Answered by {answer.userId || "Anonymous"}</div>
+                          <div>{formatDate(answer.createdAt)}</div>
+                        </div>
+                      {/if}
+                      <div class="mt-2">
+                        {#if answer.userId !== $user.userId && !userHasRepliedTo(answer)}
+                          {#if replyStates[answer.id]?.open}
+                            <blockquote class="bg-gray-100 dark:bg-gray-800 border-l-4 border-purple-500 dark:border-purple-400 p-2 mb-2 text-sm text-gray-700 dark:text-gray-200">
+                              {answer.description}
+                            </blockquote>
+                            <textarea
+                              bind:value={replyStates[answer.id].content}
+                              rows="2"
+                              placeholder="Write your reply..."
+                              class="input w-full mb-2"
+                            ></textarea>
+                            <button class="btn btn-primary mr-2" on:click={() => handleReplySubmit(answer)}>Reply</button>
+                            <button class="btn btn-outline" on:click={() => replyStates[answer.id].open = false}>Cancel</button>
+                          {:else}
+                            <button class="btn btn-secondary" on:click={() => replyStates[answer.id] = { open: true, content: "" }}>Reply</button>
+                          {/if}
+                        {/if}
                       </div>
                     </div>
                   {/each}
