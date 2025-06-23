@@ -12,7 +12,6 @@
   let loading = true;
   let error: string | null = null;
   let selectedOptions: Record<number, number[]> = {};
-  let selectedRadioStore = writable<Record<number, number>>({});
   let selectedRadio: Record<number, number> = {};
   let submitting = false;
 
@@ -26,12 +25,10 @@
       collection = res.collection;
       // Initialize selectedOptions and selectedRadio for each question
       if (collection && collection.questions) {
-        let radioInit: Record<number, number> = {};
         for (const q of collection.questions) {
           selectedOptions[q.questionId] = [];
-          radioInit[q.questionId] = undefined;
+          selectedRadio[q.questionId] = undefined;
         }
-        selectedRadioStore.set(radioInit);
       }
     } catch (err) {
       error = "Failed to load poll collection.";
@@ -70,20 +67,16 @@
   }
 
   $: {
-    // Keep selectedOptions in sync with selectedRadio for single choice
     if (collection && collection.questions) {
-      selectedRadioStore.update(radio => {
-        for (const q of collection.questions) {
-          if (q.selectionMode === 'single') {
-            if (radio[q.questionId] !== undefined) {
-              selectedOptions[q.questionId] = [radio[q.questionId]];
-            } else {
-              selectedOptions[q.questionId] = [];
-            }
+      for (const q of collection.questions) {
+        if (q.selectionMode === 'single') {
+          if (selectedRadio[q.questionId] !== undefined) {
+            selectedOptions[q.questionId] = [selectedRadio[q.questionId]];
+          } else {
+            selectedOptions[q.questionId] = [];
           }
         }
-        return radio;
-      });
+      }
     }
   }
 
@@ -144,7 +137,7 @@
                         type="radio"
                         name={`question-${question.questionId}`}
                         value={option.optionId}
-                        bind:group={$selectedRadioStore[question.questionId]}
+                        bind:group={selectedRadio[question.questionId]}
                         class="mr-3"
                       />
                       <label class="flex-1 text-gray-700 dark:text-gray-300">{option.optionText}</label>
