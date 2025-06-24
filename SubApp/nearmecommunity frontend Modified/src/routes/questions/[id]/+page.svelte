@@ -6,6 +6,8 @@
   import apiClient from "$api/apiClient";
   import LoadingSpinner from "$components/ui/LoadingSpinner.svelte";
   import UserLocationBadge from "$components/ui/UserLocationBadge.svelte";
+  import QuoteChain from '$lib/QuoteChain.svelte';
+  import SafeNestedReplyTree from '$lib/SafeNestedReplyTree.svelte';
 
   interface Answer {
     id: number;
@@ -30,6 +32,9 @@
   let answerContent = "";
   let isSubmittingAnswer = false;
   let replyStates: Record<number, { open: boolean; content: string }> = {};
+  let nestedReplies = [];
+  let replyTree = [];
+  let treeBuildError = false;
 
   onMount(async () => {
     if (!$user.userId || !$user.location) {
@@ -93,10 +98,29 @@
   async function handleReplySubmit(answer: Answer) {
     const state = replyStates[answer.id];
     if (!state || !state.content.trim()) return;
+
+    // Parse the existing answer's description to get the full chain
+    const regex = /Reply to @([^:]+):\s*/g;
+    let match;
+    let chain = '';
+    let lastIndex = 0;
+    while ((match = regex.exec(answer.description)) !== null) {
+      chain += `Reply to @${match[1]}: `;
+      lastIndex = regex.lastIndex;
+    }
+    // Add the current answer's user to the chain
+    chain += `Reply to @${answer.userId}: `;
+
+    // The reply body is the user's input
+    const replyBody = state.content.trim();
+
+    // The full description to send to the backend
+    const fullDescription = `${chain}${replyBody}`;
+
     try {
       await apiClient.qanda.postAnswer({
         questionId: $page.params.id,
-        content: `Reply to @${answer.userId}: ${answer.description}\n${state.content.trim()}`
+        content: fullDescription
       });
       state.content = "";
       state.open = false;
@@ -106,19 +130,54 @@
     }
   }
 
-  // Helper to parse reply answers
-  function parseReply(answer: Answer): { isReply: boolean, toUser: string, original: string, reply: string } {
-    const match = answer.description.match(/^Reply to @([^:]+): ([\s\S]*?)(?:\n|$)([\s\S]*)/);
-    if (match) {
-      return {
-        isReply: true,
-        toUser: match[1],
-        original: match[2].trim(),
-        reply: match[3].trim()
-      };
+  function parseQuoteChainAndBody(description, question, answers) {
+    const regex = /Reply to @([^:]+):\s*/g;
+    let match;
+    let userChain = [];
+    let lastIndex = 0;
+    while ((match = regex.exec(description)) !== null) {
+      userChain.push(match[1]);
+      lastIndex = regex.lastIndex;
     }
-    return { isReply: false, toUser: '', original: '', reply: '' };
+    const body = description.slice(lastIndex).trim();
+
+    // Helper to recursively get the body for each ancestor in the chain
+    function getAncestorBody(chainIdx, prevAncestors) {
+      if (chainIdx < 0) return question.description;
+      const user = userChain[chainIdx];
+      // Find the first answer by this user that matches the previous chain
+      const possibleAncestors = answers.filter(a => a.userId === user);
+      for (const anc of possibleAncestors) {
+        // Recursively parse this ancestor's chain
+        const ancChain = [];
+        const regex2 = /Reply to @([^:]+):\s*/g;
+        let m2, li2 = 0;
+        while ((m2 = regex2.exec(anc.description)) !== null) {
+          ancChain.push(m2[1]);
+          li2 = regex2.lastIndex;
+        }
+        // If the ancestor's chain matches the previous ancestors
+        if (ancChain.length === chainIdx && ancChain.every((u, i) => u === userChain[i])) {
+          // Recursively get the ancestor's body
+          return anc.description.slice(li2).trim();
+        }
+      }
+      // fallback
+      return `@${user}`;
+    }
+
+    // Always start with the question as the root
+    let fullChain = [{ id: question.id, excerpt: question.description }];
+    for (let i = 0; i < userChain.length; i++) {
+      const excerpt = getAncestorBody(i, userChain.slice(0, i));
+      fullChain.push({ id: userChain[i], excerpt });
+    }
+    return { quoteChain: fullChain, body };
   }
+
+  $: nestedReplies = (question && question.answers)
+    ? question.answers.map(answer => parseQuoteChainAndBody(answer.description, question, question.answers))
+    : [];
 
   async function handleDeleteAnswer(answerId: number) {
     if (!confirm('Are you sure you want to delete this answer?')) return;
@@ -143,7 +202,56 @@
     );
   }
 
-  // No grouping: flat list like Team-BHP forum
+  function safeBuildReplyTree(question, answers) {
+    try {
+      if (!question || !answers) return [];
+      function parseChain(description) {
+        const regex = /Reply to @([^:]+):\s*/g;
+        let match;
+        let users = [];
+        let lastIndex = 0;
+        while ((match = regex.exec(description)) !== null) {
+          users.push(match[1]);
+          lastIndex = regex.lastIndex;
+        }
+        const body = description.slice(lastIndex).trim();
+        return { users, body };
+      }
+      const nodes = answers.map((answer, idx) => {
+        const { users, body } = parseChain(answer.description || '');
+        return {
+          id: answer.id,
+          userId: answer.userId,
+          users,
+          body,
+          answer,
+          children: [],
+          idx
+        };
+      });
+      const roots = [];
+      for (const node of nodes) {
+        if (!node.users || node.users.length === 0) {
+          roots.push(node);
+        } else {
+          const parent = nodes.slice(0, node.idx).reverse().find(n => n.userId === node.users[node.users.length - 1]);
+          if (parent) {
+            parent.children.push(node);
+          } else {
+            roots.push(node); // fallback if parent not found
+          }
+        }
+      }
+      treeBuildError = false;
+      return roots;
+    } catch (e) {
+      console.error('Error building reply tree:', e);
+      treeBuildError = true;
+      return [];
+    }
+  }
+
+  $: replyTree = safeBuildReplyTree(question, question?.answers);
 </script>
 
 <div class="min-h-screen bg-gray-50 dark:bg-black pt-16 pb-20">
@@ -210,54 +318,30 @@
                 {question.answers?.length || 0} Answers
               </h2>
 
-              {#if question.answers && question.answers.length > 0}
+              {#if nestedReplies && nestedReplies.length > 0}
                 <div class="space-y-4">
-                  {#each question.answers as answer}
-                    <div class="bg-gray-50 dark:bg-black/70 rounded-lg p-4 border border-gray-300 dark:border-gray-700">
-                      {#if parseReply(answer).isReply}
-                        <blockquote class="bg-gray-100 dark:bg-gray-800 border-l-4 border-purple-500 dark:border-purple-400 p-2 mb-2 text-sm text-gray-700 dark:text-gray-200">
-                          {parseReply(answer).original}
-                        </blockquote>
-                        <blockquote class="bg-gray-50 dark:bg-gray-900 border-l-4 border-blue-500 dark:border-blue-400 p-2 mb-2 text-sm text-gray-800 dark:text-white">
-                          {parseReply(answer).reply}
-                        </blockquote>
-                        <div class="mt-2 flex justify-between items-center text-sm text-gray-500 dark:text-gray-400">
-                          <div>Reply by {answer.userId || "Anonymous"} to @{parseReply(answer).toUser}</div>
-                          <div>{formatDate(answer.createdAt)}</div>
-                        </div>
-                      {:else}
-                        <p class="text-gray-600 dark:text-gray-300">{answer.description}</p>
-                        <div class="mt-2 flex justify-between items-center text-sm text-gray-500 dark:text-gray-400">
-                          <div>Answered by {answer.userId || "Anonymous"}</div>
-                          <div>{formatDate(answer.createdAt)}</div>
-                        </div>
-                      {/if}
-                      <div class="mt-2 flex items-center gap-2">
-                        <button class="btn btn-secondary" on:click={() => {
-                          // Always reply to the original answer
-                          const orig = getOriginalAnswer(answer);
-                          replyStates[orig.id] = { open: true, content: "" };
-                        }}>Reply</button>
-                        {#if answer.userId === $user.userId}
-                          <button class="btn btn-danger btn-xs ml-2" on:click={() => handleDeleteAnswer(answer.id)}>
-                            Delete
-                          </button>
-                        {/if}
-                      </div>
-                      {#if replyStates[getOriginalAnswer(answer).id]?.open}
-                        <blockquote class="bg-gray-100 dark:bg-gray-800 border-l-4 border-purple-500 dark:border-purple-400 p-2 mb-2 text-sm text-gray-700 dark:text-gray-200">
-                          {getOriginalAnswer(answer).description}
-                        </blockquote>
-                        <textarea
-                          bind:value={replyStates[getOriginalAnswer(answer).id].content}
-                          rows="2"
-                          placeholder="Write your reply..."
-                          class="input w-full mb-2"
-                        ></textarea>
-                        <button class="btn btn-primary mr-2" on:click={() => handleReplySubmit(getOriginalAnswer(answer))}>Reply</button>
-                        <button class="btn btn-outline" on:click={() => replyStates[getOriginalAnswer(answer).id].open = false}>Cancel</button>
+                  {#each question.answers as answer, i}
+                    <QuoteChain quoteChain={nestedReplies[i].quoteChain} body={nestedReplies[i].body} />
+                    <div class="mt-2 flex items-center gap-2">
+                      <button class="btn btn-secondary" on:click={() => {
+                        replyStates[answer.id] = { open: true, content: "" };
+                      }}>Reply</button>
+                      {#if answer.userId === $user.userId}
+                        <button class="btn btn-danger btn-xs ml-2" on:click={() => handleDeleteAnswer(answer.id)}>
+                          Delete
+                        </button>
                       {/if}
                     </div>
+                    {#if replyStates[answer.id]?.open}
+                      <textarea
+                        bind:value={replyStates[answer.id].content}
+                        rows="2"
+                        placeholder="Write your reply..."
+                        class="input w-full mb-2"
+                      ></textarea>
+                      <button class="btn btn-primary mr-2" on:click={() => handleReplySubmit(answer)}>Reply</button>
+                      <button class="btn btn-outline" on:click={() => replyStates[answer.id].open = false}>Cancel</button>
+                    {/if}
                   {/each}
                 </div>
               {:else}
