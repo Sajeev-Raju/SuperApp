@@ -120,11 +120,30 @@
     return { isReply: false, toUser: '', original: '', reply: '' };
   }
 
-  // Check if the current user has already replied to this answer
-  function userHasRepliedTo(answer: Answer): boolean {
-    if (!question || !question.answers) return false;
-    return question.answers.some(a => a.userId === $user.userId && a.description.startsWith(`Reply to @${answer.userId}:`) && a.createdAt > answer.createdAt);
+  async function handleDeleteAnswer(answerId: number) {
+    if (!confirm('Are you sure you want to delete this answer?')) return;
+    try {
+      await apiClient.qanda.deleteAnswer(answerId);
+      await loadQuestion();
+    } catch (err) {
+      error = 'Failed to delete answer. Please try again.';
+    }
   }
+
+  // Helper to get the original answer for a reply
+  function getOriginalAnswer(answer: Answer): Answer {
+    if (!parseReply(answer).isReply) return answer;
+    // Find the original answer in the list
+    if (!question?.answers) return answer;
+    const parsed = parseReply(answer);
+    return (
+      question.answers.find(
+        a => a.userId === parsed.toUser && a.description === parsed.original && !parseReply(a).isReply
+      ) || answer
+    );
+  }
+
+  // No grouping: flat list like Team-BHP forum
 </script>
 
 <div class="min-h-screen bg-gray-50 dark:bg-black pt-16 pb-20">
@@ -194,14 +213,14 @@
               {#if question.answers && question.answers.length > 0}
                 <div class="space-y-4">
                   {#each question.answers as answer}
-                    <div class={parseReply(answer).isReply
-                      ? "bg-gray-50 dark:bg-black/70 rounded-lg p-4 border border-blue-200 dark:border-blue-700"
-                      : "bg-gray-50 dark:bg-black/70 rounded-lg p-4 border border-gray-300 dark:border-gray-700"}>
+                    <div class="bg-gray-50 dark:bg-black/70 rounded-lg p-4 border border-gray-300 dark:border-gray-700">
                       {#if parseReply(answer).isReply}
                         <blockquote class="bg-gray-100 dark:bg-gray-800 border-l-4 border-purple-500 dark:border-purple-400 p-2 mb-2 text-sm text-gray-700 dark:text-gray-200">
                           {parseReply(answer).original}
                         </blockquote>
-                        <p class="text-gray-800 dark:text-white mb-2">{parseReply(answer).reply}</p>
+                        <blockquote class="bg-gray-50 dark:bg-gray-900 border-l-4 border-blue-500 dark:border-blue-400 p-2 mb-2 text-sm text-gray-800 dark:text-white">
+                          {parseReply(answer).reply}
+                        </blockquote>
                         <div class="mt-2 flex justify-between items-center text-sm text-gray-500 dark:text-gray-400">
                           <div>Reply by {answer.userId || "Anonymous"} to @{parseReply(answer).toUser}</div>
                           <div>{formatDate(answer.createdAt)}</div>
@@ -213,25 +232,31 @@
                           <div>{formatDate(answer.createdAt)}</div>
                         </div>
                       {/if}
-                      <div class="mt-2">
-                        {#if answer.userId !== $user.userId && !userHasRepliedTo(answer)}
-                          {#if replyStates[answer.id]?.open}
-                            <blockquote class="bg-gray-100 dark:bg-gray-800 border-l-4 border-purple-500 dark:border-purple-400 p-2 mb-2 text-sm text-gray-700 dark:text-gray-200">
-                              {answer.description}
-                            </blockquote>
-                            <textarea
-                              bind:value={replyStates[answer.id].content}
-                              rows="2"
-                              placeholder="Write your reply..."
-                              class="input w-full mb-2"
-                            ></textarea>
-                            <button class="btn btn-primary mr-2" on:click={() => handleReplySubmit(answer)}>Reply</button>
-                            <button class="btn btn-outline" on:click={() => replyStates[answer.id].open = false}>Cancel</button>
-                          {:else}
-                            <button class="btn btn-secondary" on:click={() => replyStates[answer.id] = { open: true, content: "" }}>Reply</button>
-                          {/if}
+                      <div class="mt-2 flex items-center gap-2">
+                        <button class="btn btn-secondary" on:click={() => {
+                          // Always reply to the original answer
+                          const orig = getOriginalAnswer(answer);
+                          replyStates[orig.id] = { open: true, content: "" };
+                        }}>Reply</button>
+                        {#if answer.userId === $user.userId}
+                          <button class="btn btn-danger btn-xs ml-2" on:click={() => handleDeleteAnswer(answer.id)}>
+                            Delete
+                          </button>
                         {/if}
                       </div>
+                      {#if replyStates[getOriginalAnswer(answer).id]?.open}
+                        <blockquote class="bg-gray-100 dark:bg-gray-800 border-l-4 border-purple-500 dark:border-purple-400 p-2 mb-2 text-sm text-gray-700 dark:text-gray-200">
+                          {getOriginalAnswer(answer).description}
+                        </blockquote>
+                        <textarea
+                          bind:value={replyStates[getOriginalAnswer(answer).id].content}
+                          rows="2"
+                          placeholder="Write your reply..."
+                          class="input w-full mb-2"
+                        ></textarea>
+                        <button class="btn btn-primary mr-2" on:click={() => handleReplySubmit(getOriginalAnswer(answer))}>Reply</button>
+                        <button class="btn btn-outline" on:click={() => replyStates[getOriginalAnswer(answer).id].open = false}>Cancel</button>
+                      {/if}
                     </div>
                   {/each}
                 </div>

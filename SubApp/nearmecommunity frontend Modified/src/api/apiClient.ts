@@ -112,6 +112,10 @@ export const qandaApi = {
   getTags: () => {
     return apiClient('/api/qanda/tags');
   },
+  
+  deleteAnswer: (answerId: number) => {
+    return apiClient(`/api/qanda/answers/${answerId}`, { method: 'DELETE' });
+  },
 };
 
 /**
